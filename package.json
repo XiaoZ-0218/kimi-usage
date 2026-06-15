@@ -1,0 +1,107 @@
+{
+  "name": "kimi-usage-statusbar",
+  "displayName": "Kimi Usage Statusbar",
+  "description": "在 VSCode 状态栏显示 Kimi Code 用量与 5h/本周趋势曲线",
+  "version": "0.1.0",
+  "publisher": "local",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "kimiUsage.refresh",
+        "title": "刷新 Kimi 用量",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "kimiUsage.setToken",
+        "title": "设置 Kimi API Key"
+      },
+      {
+        "command": "kimiUsage.openConsole",
+        "title": "打开 Kimi Code 控制台"
+      },
+      {
+        "command": "kimiUsage.clearHistory",
+        "title": "清除 Kimi 用量历史"
+      },
+      {
+        "command": "kimiUsage.toggleMock",
+        "title": "切换 Kimi Mock 模式"
+      }
+    ],
+    "configuration": {
+      "title": "Kimi Usage Statusbar",
+      "properties": {
+        "kimiUsage.pollIntervalMinutes": {
+          "type": "number",
+          "default": 5,
+          "minimum": 1,
+          "maximum": 120,
+          "description": "轮询 Kimi 用量的间隔（分钟）"
+        },
+        "kimiUsage.statusBarIcon": {
+          "type": "string",
+          "default": "sparkle",
+          "description": "状态栏图标（VSCode codicon 名称，留空则隐藏图标）"
+        },
+        "kimiUsage.apiBaseUrl": {
+          "type": "string",
+          "default": "https://api.kimi.com",
+          "description": "Kimi API 基础地址"
+        },
+        "kimiUsage.mockMode": {
+          "type": "boolean",
+          "default": false,
+          "description": "Mock 模式：不调用真实 API，使用模拟数据"
+        },
+        "kimiUsage.maxHistoryDays": {
+          "type": "number",
+          "default": 14,
+          "minimum": 7,
+          "maximum": 90,
+          "description": "本地保存用量历史的天数上限"
+        }
+      }
+    },
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "kimiUsage.refresh"
+        },
+        {
+          "command": "kimiUsage.setToken"
+        },
+        {
+          "command": "kimiUsage.openConsole"
+        },
+        {
+          "command": "kimiUsage.clearHistory"
+        },
+        {
+          "command": "kimiUsage.toggleMock"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package",
+    "lint": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/vscode": "^1.90.0",
+    "typescript": "^5.4.5"
+  }
+}

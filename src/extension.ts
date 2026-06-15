@@ -1,14 +1,13 @@
 import * as vscode from 'vscode';
 import { KimiApiClient, generateMockSnapshot, type UsageSnapshot } from './kimiApi';
-import { UsageStore } from './usageStore';
 import { StatusBarManager } from './statusBar';
 
 const API_KEY_SECRET = 'kimiUsage.apiKey';
 
 interface AppState {
   context: vscode.ExtensionContext;
-  store: UsageStore;
   statusBar: StatusBarManager;
+  refreshButton: vscode.StatusBarItem;
   pollTimer: NodeJS.Timeout | undefined;
   isMock: boolean;
 }
@@ -16,24 +15,30 @@ interface AppState {
 let state: AppState | undefined;
 
 export function activate(context: vscode.ExtensionContext) {
-  const store = new UsageStore(context);
   const statusBar = new StatusBarManager();
+
+  const refreshButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 99);
+  refreshButton.text = '$(refresh)';
+  refreshButton.tooltip = '手动刷新 Kimi 用量';
+  refreshButton.command = 'kimiUsage.refresh';
+  refreshButton.show();
+
   const cfg = vscode.workspace.getConfiguration('kimiUsage');
 
   state = {
     context,
-    store,
     statusBar,
+    refreshButton,
     pollTimer: undefined,
     isMock: cfg.get<boolean>('mockMode', false),
   };
 
   context.subscriptions.push(
     statusBar,
+    refreshButton,
     vscode.commands.registerCommand('kimiUsage.refresh', () => refresh(false)),
     vscode.commands.registerCommand('kimiUsage.setToken', setApiKey),
     vscode.commands.registerCommand('kimiUsage.openConsole', openConsole),
-    vscode.commands.registerCommand('kimiUsage.clearHistory', clearHistory),
     vscode.commands.registerCommand('kimiUsage.toggleMock', toggleMock),
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration('kimiUsage')) {
@@ -43,7 +48,6 @@ export function activate(context: vscode.ExtensionContext) {
     })
   );
 
-  loadAndShowHistory();
   refresh(true);
   schedulePoll();
 }
@@ -51,14 +55,6 @@ export function activate(context: vscode.ExtensionContext) {
 export function deactivate() {
   if (state?.pollTimer) {
     clearInterval(state.pollTimer);
-  }
-}
-
-async function loadAndShowHistory() {
-  if (!state) { return; }
-  const history = await state.store.load();
-  if (history.length > 0) {
-    state.statusBar.setSnapshot(history[history.length - 1], history);
   }
 }
 
@@ -83,15 +79,13 @@ async function refresh(silent: boolean): Promise<void> {
       snapshot = await client.fetchUsage();
     }
 
-    const history = await state.store.append(snapshot);
-    state.statusBar.setSnapshot(snapshot, history);
+    state.statusBar.setSnapshot(snapshot);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     if (!silent) {
       vscode.window.showErrorMessage(`Kimi 用量刷新失败：${message}`);
     }
-    const history = await state.store.load();
-    state.statusBar.setError('刷新失败', history);
+    state.statusBar.setError('刷新失败');
   }
 }
 
@@ -134,20 +128,6 @@ async function setApiKey() {
 
 function openConsole() {
   vscode.env.openExternal(vscode.Uri.parse('https://www.kimi.com/code/console'));
-}
-
-async function clearHistory() {
-  if (!state) { return; }
-  const answer = await vscode.window.showWarningMessage(
-    '确定要清除本地保存的 Kimi 用量历史吗？',
-    { modal: true },
-    '确定'
-  );
-  if (answer === '确定') {
-    await state.store.clear();
-    vscode.window.showInformationMessage('用量历史已清除');
-    await refresh(false);
-  }
 }
 
 async function toggleMock() {

@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import type { UsageSnapshot } from './kimiApi';
-import { generateChartSvg, svgToMarkdownDataUri, formatResetTime, formatCountdown, remainingPct } from './chart';
 
 export class StatusBarManager {
   private item: vscode.StatusBarItem;
@@ -16,15 +15,15 @@ export class StatusBarManager {
     this.item.dispose();
   }
 
-  setSnapshot(snapshot: UsageSnapshot, history: UsageSnapshot[]) {
+  setSnapshot(snapshot: UsageSnapshot) {
     this.lastSnapshot = snapshot;
-    this.render(history);
+    this.render();
   }
 
-  setError(message: string, history: UsageSnapshot[] = []) {
+  setError(message: string) {
     const icon = this.getIconPrefix();
     this.item.text = `${icon}KIMI · ${message}`;
-    this.item.tooltip = this.buildTooltip(undefined, history);
+    this.item.tooltip = this.buildTooltip(undefined);
     this.item.backgroundColor = new vscode.ThemeColor('statusBarItem.errorBackground');
   }
 
@@ -63,34 +62,28 @@ export class StatusBarManager {
     return `${Math.round((remaining / limit) * 100)}%`;
   }
 
-  private render(history: UsageSnapshot[]) {
+  private render() {
     if (!this.lastSnapshot) { return; }
     const snapshot = this.lastSnapshot;
     const icon = this.getIconPrefix();
 
     this.item.text = `${icon}KIMI · 5h ${this.pctText(snapshot, '5h')} · 本周 ${this.pctText(snapshot, 'weekly')}`;
-    this.item.tooltip = this.buildTooltip(snapshot, history);
+    this.item.tooltip = this.buildTooltip(snapshot);
     this.item.command = 'kimiUsage.refresh';
     this.item.backgroundColor = undefined;
   }
 
-  private buildTooltip(snapshot: UsageSnapshot | undefined, history: UsageSnapshot[]): vscode.MarkdownString {
+  private buildTooltip(snapshot: UsageSnapshot | undefined): vscode.MarkdownString {
     const md = new vscode.MarkdownString();
     md.isTrusted = true;
-    md.supportHtml = true;
 
-    md.appendMarkdown('### Kimi Code 用量趋势\n\n');
-
-    if (history.length > 0) {
-      const svg = generateChartSvg(history);
-      md.appendMarkdown(`![Kimi 用量趋势](${svgToMarkdownDataUri(svg)})\n\n`);
-    }
+    md.appendMarkdown('### Kimi Code 用量\n\n');
 
     if (snapshot) {
       md.appendMarkdown(`- **5h 滚动窗口**：${this.pctText(snapshot, '5h')} 剩余（${snapshot.window5hRemaining}/${snapshot.window5hLimit}）\n`);
-      md.appendMarkdown(`  - 重置：${formatResetTime(snapshot.window5hResetTime)}，还剩 ${formatCountdown(snapshot.window5hResetTime)}\n`);
+      md.appendMarkdown(`  - 重置时间：${formatResetTime(snapshot.window5hResetTime)}，还剩 ${formatCountdown(snapshot.window5hResetTime)}\n`);
       md.appendMarkdown(`- **本周额度**：${this.pctText(snapshot, 'weekly')} 剩余（${snapshot.weeklyRemaining}/${snapshot.weeklyLimit}）\n`);
-      md.appendMarkdown(`  - 重置：${formatResetTime(snapshot.weeklyResetTime)}，还剩 ${formatCountdown(snapshot.weeklyResetTime)}\n`);
+      md.appendMarkdown(`  - 重置时间：${formatResetTime(snapshot.weeklyResetTime)}，还剩 ${formatCountdown(snapshot.weeklyResetTime)}\n`);
       if (snapshot.monthlyLimit > 0) {
         md.appendMarkdown(`- **月额度**：${this.pctText(snapshot, 'monthly')} 剩余（${snapshot.monthlyRemaining}/${snapshot.monthlyLimit}）\n`);
       }
@@ -103,4 +96,33 @@ export class StatusBarManager {
 
     return md;
   }
+}
+
+function formatCountdown(targetIso: string | undefined, now: number = Date.now()): string {
+  if (!targetIso) { return '-'; }
+  const target = new Date(targetIso).getTime();
+  if (Number.isNaN(target)) { return targetIso; }
+
+  let diff = Math.max(0, target - now);
+  if (diff <= 0) { return '已重置'; }
+
+  const days = Math.floor(diff / (24 * 60 * 60 * 1000));
+  diff %= 24 * 60 * 60 * 1000;
+  const hours = Math.floor(diff / (60 * 60 * 1000));
+  diff %= 60 * 60 * 1000;
+  const minutes = Math.floor(diff / (60 * 1000));
+
+  const parts: string[] = [];
+  if (days > 0) { parts.push(`${days}d`); }
+  if (hours > 0) { parts.push(`${hours}h`); }
+  if (minutes > 0 || parts.length === 0) { parts.push(`${minutes}m`); }
+
+  return parts.join('');
+}
+
+function formatResetTime(iso?: string): string {
+  if (!iso) { return '-'; }
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) { return iso; }
+  return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }

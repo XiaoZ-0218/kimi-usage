@@ -3,7 +3,7 @@
 在 VSCode 状态栏实时显示 Kimi Code 用量：
 
 ```
-$(sparkle)KIMI · 5h 80% · 本周 60%
+$(sparkles)KIMI · 5h 80% · 本周 60%
 ```
 
 鼠标悬停可查看 5h、本周、月额度的剩余情况与重置倒计时。
@@ -39,7 +39,7 @@ API Key 会保存在 VSCode 的机密存储中，不会写入 settings.json。
 | 设置 | 说明 |
 | --- | --- |
 | `kimiUsage.pollIntervalMinutes` | 自动刷新间隔（分钟，默认 5） |
-| `kimiUsage.statusBarIcon` | 状态栏图标（VSCode codicon，默认 `sparkle`） |
+| `kimiUsage.statusBarIcon` | 状态栏图标（VSCode codicon，默认 `sparkles`） |
 | `kimiUsage.apiBaseUrl` | API 基础地址（默认 `https://api.kimi.com`） |
 | `kimiUsage.mockMode` | Mock 模式（默认 `false`） |
 

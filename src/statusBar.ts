@@ -80,12 +80,12 @@ export class StatusBarManager {
     md.appendMarkdown('### Kimi Code 用量\n\n');
 
     if (snapshot) {
-      md.appendMarkdown(`- **5h 滚动窗口**：${this.pctText(snapshot, '5h')} 剩余（${snapshot.window5hRemaining}/${snapshot.window5hLimit}）\n`);
+      md.appendMarkdown(`- **5h 滚动窗口**：${this.pctText(snapshot, '5h')} 剩余\n`);
       md.appendMarkdown(`  - 重置时间：${formatResetTime(snapshot.window5hResetTime)}，还剩 ${formatCountdown(snapshot.window5hResetTime)}\n`);
-      md.appendMarkdown(`- **本周额度**：${this.pctText(snapshot, 'weekly')} 剩余（${snapshot.weeklyRemaining}/${snapshot.weeklyLimit}）\n`);
+      md.appendMarkdown(`- **本周额度**：${this.pctText(snapshot, 'weekly')} 剩余\n`);
       md.appendMarkdown(`  - 重置时间：${formatResetTime(snapshot.weeklyResetTime)}，还剩 ${formatCountdown(snapshot.weeklyResetTime)}\n`);
       if (snapshot.monthlyLimit > 0) {
-        md.appendMarkdown(`- **月额度**：${this.pctText(snapshot, 'monthly')} 剩余（${snapshot.monthlyRemaining}/${snapshot.monthlyLimit}）\n`);
+        md.appendMarkdown(`- **月额度**：${this.pctText(snapshot, 'monthly')} 剩余\n`);
       }
     } else {
       md.appendMarkdown('- 暂无用量数据\n');

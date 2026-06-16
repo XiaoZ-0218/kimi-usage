@@ -23,6 +23,15 @@
   "contributes": {
     "commands": [
       {
+        "command": "kimiUsage.showWelcome",
+        "title": "打开 Kimi 欢迎页面",
+        "icon": "$(sparkle)"
+      },
+      {
+        "command": "kimiUsage.showWelcome",
+        "title": "打开 Kimi 欢迎页面"
+      },
+      {
         "command": "kimiUsage.refresh",
         "title": "刷新 Kimi 用量",
         "icon": "$(refresh)"

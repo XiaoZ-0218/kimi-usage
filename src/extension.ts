@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { KimiApiClient, generateMockSnapshot, type UsageSnapshot } from './kimiApi';
 import { StatusBarManager } from './statusBar';
+import { showWelcomePage } from './welcome';
 
 const API_KEY_SECRET = 'kimiUsage.apiKey';
 
@@ -36,6 +37,7 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     statusBar,
     refreshButton,
+    vscode.commands.registerCommand('kimiUsage.showWelcome', () => showWelcomePage(context, true)),
     vscode.commands.registerCommand('kimiUsage.refresh', () => refresh(false)),
     vscode.commands.registerCommand('kimiUsage.setToken', setApiKey),
     vscode.commands.registerCommand('kimiUsage.openConsole', openConsole),
@@ -48,6 +50,7 @@ export function activate(context: vscode.ExtensionContext) {
     })
   );
 
+  showWelcomePage(context);
   refresh(true);
   schedulePoll();
 }

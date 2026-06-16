@@ -19,6 +19,8 @@ export function showWelcomePage(context: vscode.ExtensionContext, force = false)
     }
   );
 
+  context.subscriptions.push(panel);
+
   panel.iconPath = vscode.Uri.joinPath(context.extensionUri, 'icon.png');
   panel.webview.html = getWelcomeHtml(panel.webview, context.extensionUri);
 
@@ -35,7 +37,6 @@ export function showWelcomePage(context: vscode.ExtensionContext, force = false)
           await vscode.commands.executeCommand('kimiUsage.refresh');
           return;
         case 'dismiss':
-          await context.globalState.update(HAS_SHOWN_WELCOME_KEY, true);
           panel.dispose();
           return;
       }

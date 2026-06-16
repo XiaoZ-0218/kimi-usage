@@ -28,8 +28,7 @@
         "icon": "$(sparkle)"
       },
       {
-        "command": "kimiUsage.showWelcome",
-        "title": "打开 Kimi 欢迎页面"
+        "command": "kimiUsage.showWelcome"
       },
       {
         "command": "kimiUsage.refresh",

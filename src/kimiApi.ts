@@ -6,6 +6,7 @@ export interface UsageSnapshot {
   weeklyLimit: number;
   monthlyRemaining: number;
   monthlyLimit: number;
+  concurrency?: number;
   window5hResetTime?: string;
   weeklyResetTime?: string;
 }
@@ -29,6 +30,7 @@ interface KimiUsageResponse {
   usage: UsageDetail;
   limits: UsageLimit[];
   totalQuota: UsageDetail;
+  concurrency?: number;
 }
 
 const FIVE_HOUR_MINUTES = 300;
@@ -81,6 +83,7 @@ export class KimiApiClient {
       weeklyLimit: parseCount(data.usage.limit),
       monthlyRemaining: parseCount(data.totalQuota.remaining),
       monthlyLimit: parseCount(data.totalQuota.limit),
+      concurrency: typeof data.concurrency === 'number' ? data.concurrency : undefined,
       window5hResetTime: fiveHourLimit.detail.resetTime,
       weeklyResetTime: data.usage.resetTime,
     };
@@ -103,6 +106,7 @@ export function generateMockSnapshot(): UsageSnapshot {
     weeklyRemaining: 60,
     monthlyLimit: 100,
     monthlyRemaining: 70,
+    concurrency: 3,
     window5hResetTime: new Date(now + 5 * 60 * 60 * 1000).toISOString(),
     weeklyResetTime: new Date(now + 7 * 24 * 60 * 60 * 1000).toISOString(),
   };

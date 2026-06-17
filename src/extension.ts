@@ -41,6 +41,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('kimiUsage.refresh', () => refresh(false)),
     vscode.commands.registerCommand('kimiUsage.setToken', setApiKey),
     vscode.commands.registerCommand('kimiUsage.openConsole', openConsole),
+    vscode.commands.registerCommand('kimiUsage.openSettings', openSettings),
     vscode.commands.registerCommand('kimiUsage.toggleMock', toggleMock),
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration('kimiUsage')) {
@@ -139,4 +140,8 @@ async function toggleMock() {
   await vscode.workspace.getConfiguration('kimiUsage').update('mockMode', state.isMock, true);
   vscode.window.showInformationMessage(`Kimi Mock 模式已${state.isMock ? '开启' : '关闭'}`);
   await refresh(false);
+}
+
+function openSettings() {
+  vscode.commands.executeCommand('workbench.action.openSettings', '@ext:local.kimi-usage-statusbar');
 }

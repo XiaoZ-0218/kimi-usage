@@ -7,7 +7,7 @@ export class StatusBarManager {
 
   constructor() {
     this.item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-    this.item.command = 'kimiUsage.refresh';
+    this.item.command = 'kimiUsage.openSettings';
     this.item.show();
   }
 
@@ -30,8 +30,8 @@ export class StatusBarManager {
   setNoToken() {
     const icon = this.getIconPrefix();
     this.item.text = `${icon}KIMI · 点击配置`;
-    this.item.tooltip = '尚未配置 Kimi API Key，点击设置';
-    this.item.command = 'kimiUsage.setToken';
+    this.item.tooltip = '尚未配置 Kimi API Key，点击打开设置';
+    this.item.command = 'kimiUsage.openSettings';
     this.item.backgroundColor = undefined;
   }
 
@@ -66,10 +66,11 @@ export class StatusBarManager {
     if (!this.lastSnapshot) { return; }
     const snapshot = this.lastSnapshot;
     const icon = this.getIconPrefix();
+    const concurrencyText = snapshot.concurrency !== undefined ? ` · 并发 ${snapshot.concurrency}` : '';
 
-    this.item.text = `${icon}KIMI · 5h ${this.pctText(snapshot, '5h')} · 本周 ${this.pctText(snapshot, 'weekly')}`;
+    this.item.text = `${icon}KIMI · 5h ${this.pctText(snapshot, '5h')} · 本周 ${this.pctText(snapshot, 'weekly')}${concurrencyText}`;
     this.item.tooltip = this.buildTooltip(snapshot);
-    this.item.command = 'kimiUsage.refresh';
+    this.item.command = 'kimiUsage.openSettings';
     this.item.backgroundColor = undefined;
   }
 
@@ -86,6 +87,9 @@ export class StatusBarManager {
       md.appendMarkdown(`  - 重置时间：${formatResetTime(snapshot.weeklyResetTime)}，还剩 ${formatCountdown(snapshot.weeklyResetTime)}\n`);
       if (snapshot.monthlyLimit > 0) {
         md.appendMarkdown(`- **月额度**：${this.pctText(snapshot, 'monthly')} 剩余\n`);
+      }
+      if (snapshot.concurrency !== undefined) {
+        md.appendMarkdown(`- **实时并发**：${snapshot.concurrency}\n`);
       }
     } else {
       md.appendMarkdown('- 暂无用量数据\n');

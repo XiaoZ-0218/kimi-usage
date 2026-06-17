@@ -63,9 +63,8 @@ export class StatusBarManager {
   }
 
   private concurrencyText(snapshot: UsageSnapshot): string {
-    if (snapshot.concurrency === undefined) { return ''; }
-    const limit = snapshot.concurrencyLimit;
-    return limit ? `${snapshot.concurrency}/${limit}` : String(snapshot.concurrency);
+    if (snapshot.concurrency === undefined || snapshot.concurrency <= 1) { return ''; }
+    return String(snapshot.concurrency);
   }
 
   private render() {

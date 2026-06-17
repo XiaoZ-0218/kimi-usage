@@ -62,11 +62,18 @@ export class StatusBarManager {
     return `${Math.round((remaining / limit) * 100)}%`;
   }
 
+  private concurrencyText(snapshot: UsageSnapshot): string {
+    if (snapshot.concurrency === undefined) { return ''; }
+    const limit = snapshot.concurrencyLimit;
+    return limit ? `${snapshot.concurrency}/${limit}` : String(snapshot.concurrency);
+  }
+
   private render() {
     if (!this.lastSnapshot) { return; }
     const snapshot = this.lastSnapshot;
     const icon = this.getIconPrefix();
-    const concurrencyText = snapshot.concurrency !== undefined ? ` · 并发 ${snapshot.concurrency}` : '';
+    const concurrency = this.concurrencyText(snapshot);
+    const concurrencyText = concurrency ? ` · 并发 ${concurrency}` : '';
 
     this.item.text = `${icon}KIMI · 5h ${this.pctText(snapshot, '5h')} · 本周 ${this.pctText(snapshot, 'weekly')}${concurrencyText}`;
     this.item.tooltip = this.buildTooltip(snapshot);
@@ -88,8 +95,9 @@ export class StatusBarManager {
       if (snapshot.monthlyLimit > 0) {
         md.appendMarkdown(`- **月额度**：${this.pctText(snapshot, 'monthly')} 剩余\n`);
       }
-      if (snapshot.concurrency !== undefined) {
-        md.appendMarkdown(`- **实时并发**：${snapshot.concurrency}\n`);
+      const concurrency = this.concurrencyText(snapshot);
+      if (concurrency) {
+        md.appendMarkdown(`- **实时并发**：${concurrency}\n`);
       }
     } else {
       md.appendMarkdown('- 暂无用量数据\n');

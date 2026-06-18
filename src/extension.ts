@@ -8,7 +8,6 @@ const API_KEY_SECRET = 'kimiUsage.apiKey';
 interface AppState {
   context: vscode.ExtensionContext;
   statusBar: StatusBarManager;
-  refreshButton: vscode.StatusBarItem;
   pollTimer: NodeJS.Timeout | undefined;
   isMock: boolean;
   outputChannel: vscode.OutputChannel;
@@ -25,12 +24,6 @@ function logDebug(message: string) {
 export function activate(context: vscode.ExtensionContext) {
   const statusBar = new StatusBarManager();
 
-  const refreshButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 99);
-  refreshButton.text = '$(refresh)';
-  refreshButton.tooltip = '手动刷新 Kimi 用量';
-  refreshButton.command = 'kimiUsage.refresh';
-  refreshButton.show();
-
   const outputChannel = vscode.window.createOutputChannel('Kimi Usage');
 
   const cfg = vscode.workspace.getConfiguration('kimiUsage');
@@ -38,7 +31,6 @@ export function activate(context: vscode.ExtensionContext) {
   state = {
     context,
     statusBar,
-    refreshButton,
     pollTimer: undefined,
     isMock: cfg.get<boolean>('mockMode', false),
     outputChannel,
@@ -46,7 +38,6 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     statusBar,
-    refreshButton,
     outputChannel,
     vscode.commands.registerCommand('kimiUsage.showWelcome', () => showWelcomePage(context, true)),
     vscode.commands.registerCommand('kimiUsage.refresh', () => refresh(false)),

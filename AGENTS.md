@@ -67,7 +67,7 @@ vsce package        # 生成 .vsix 文件
 ### `src/extension.ts`
 
 - 导出 `activate()` / `deactivate()` 作为 VSCode 扩展生命周期钩子。
-- 维护全局 `state: AppState`，包含 `StatusBarManager`、`refreshButton`、轮询定时器、Mock 开关。
+- 维护全局 `state: AppState`，包含 `StatusBarManager`、轮询定时器、Mock 开关。
 - 注册 4 个命令：
   - `kimiUsage.refresh` — 手动刷新用量
   - `kimiUsage.setToken` — 输入并保存 API Key 到 VSCode secrets

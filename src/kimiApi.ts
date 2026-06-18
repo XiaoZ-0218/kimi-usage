@@ -52,11 +52,17 @@ function parseCount(value: string): number {
 export class KimiApiClient {
   constructor(
     private apiKey: string,
-    private baseUrl: string
+    private baseUrl: string,
+    private debugLog?: (message: string) => void
   ) {}
+
+  private log(message: string) {
+    this.debugLog?.(message);
+  }
 
   async fetchUsage(): Promise<UsageSnapshot> {
     const url = `${this.baseUrl}/coding/v1/usages`;
+    this.log(`请求: GET ${url}`);
 
     const res = await fetch(url, {
       method: 'GET',
@@ -66,12 +72,16 @@ export class KimiApiClient {
       },
     });
 
+    this.log(`响应状态: ${res.status}`);
+
     if (!res.ok) {
       const text = await res.text().catch(() => '');
+      this.log(`响应错误: ${text}`);
       throw new Error(`HTTP ${res.status}: ${text}`);
     }
 
     const data = (await res.json()) as KimiUsageResponse;
+    this.log(`响应体: ${JSON.stringify(data, null, 2)}`);
 
     const fiveHourLimit = data.limits.find(
       (l) => l.window.duration === FIVE_HOUR_MINUTES && l.window.timeUnit === 'TIME_UNIT_MINUTE'
@@ -98,6 +108,8 @@ export class KimiApiClient {
     if (snapshot.window5hLimit === 0 || snapshot.weeklyLimit === 0) {
       throw new Error('API 返回的额度上限为 0，数据异常');
     }
+
+    this.log(`解析结果: ${JSON.stringify(snapshot, null, 2)}`);
 
     return snapshot;
   }

@@ -50,6 +50,10 @@
       {
         "command": "kimiUsage.toggleMock",
         "title": "切换 Kimi Mock 模式"
+      },
+      {
+        "command": "kimiUsage.openDebugOutput",
+        "title": "打开 Kimi 调试输出"
       }
     ],
     "configuration": {
@@ -76,6 +80,11 @@
           "type": "boolean",
           "default": false,
           "description": "Mock 模式：不调用真实 API，使用模拟数据"
+        },
+        "kimiUsage.debugMode": {
+          "type": "boolean",
+          "default": false,
+          "description": "调试模式：在输出面板记录 API 请求与响应"
         }
       }
     },
@@ -95,6 +104,9 @@
         },
         {
           "command": "kimiUsage.toggleMock"
+        },
+        {
+          "command": "kimiUsage.openDebugOutput"
         }
       ]
     }

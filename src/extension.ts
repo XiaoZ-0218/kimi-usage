@@ -11,9 +11,16 @@ interface AppState {
   refreshButton: vscode.StatusBarItem;
   pollTimer: NodeJS.Timeout | undefined;
   isMock: boolean;
+  outputChannel: vscode.OutputChannel;
 }
 
 let state: AppState | undefined;
+
+function logDebug(message: string) {
+  if (!state) { return; }
+  const now = new Date().toLocaleString('zh-CN');
+  state.outputChannel.appendLine(`[${now}] ${message}`);
+}
 
 export function activate(context: vscode.ExtensionContext) {
   const statusBar = new StatusBarManager();
@@ -24,6 +31,8 @@ export function activate(context: vscode.ExtensionContext) {
   refreshButton.command = 'kimiUsage.refresh';
   refreshButton.show();
 
+  const outputChannel = vscode.window.createOutputChannel('Kimi Usage');
+
   const cfg = vscode.workspace.getConfiguration('kimiUsage');
 
   state = {
@@ -32,17 +41,20 @@ export function activate(context: vscode.ExtensionContext) {
     refreshButton,
     pollTimer: undefined,
     isMock: cfg.get<boolean>('mockMode', false),
+    outputChannel,
   };
 
   context.subscriptions.push(
     statusBar,
     refreshButton,
+    outputChannel,
     vscode.commands.registerCommand('kimiUsage.showWelcome', () => showWelcomePage(context, true)),
     vscode.commands.registerCommand('kimiUsage.refresh', () => refresh(false)),
     vscode.commands.registerCommand('kimiUsage.setToken', setApiKey),
     vscode.commands.registerCommand('kimiUsage.openConsole', openConsole),
     vscode.commands.registerCommand('kimiUsage.openSettings', openSettings),
     vscode.commands.registerCommand('kimiUsage.toggleMock', toggleMock),
+    vscode.commands.registerCommand('kimiUsage.openDebugOutput', () => outputChannel.show()),
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration('kimiUsage')) {
         schedulePoll();
@@ -79,7 +91,8 @@ async function refresh(silent: boolean): Promise<void> {
         state.statusBar.setNoToken();
         return;
       }
-      const client = new KimiApiClient(apiKey, baseUrl);
+      const debugMode = cfg.get<boolean>('debugMode', false);
+      const client = new KimiApiClient(apiKey, baseUrl, debugMode ? logDebug : undefined);
       snapshot = await client.fetchUsage();
     }
 

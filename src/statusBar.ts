@@ -63,7 +63,7 @@ export class StatusBarManager {
   }
 
   private concurrencyText(snapshot: UsageSnapshot): string {
-    if (snapshot.concurrency === undefined || snapshot.concurrency <= 1) { return ''; }
+    if (snapshot.concurrency === undefined) { return ''; }
     return String(snapshot.concurrency);
   }
 
@@ -71,7 +71,7 @@ export class StatusBarManager {
     if (!this.lastSnapshot) { return; }
     const snapshot = this.lastSnapshot;
     const icon = this.getIconPrefix();
-    const concurrency = this.concurrencyText(snapshot);
+    const concurrency = (snapshot.concurrency !== undefined && snapshot.concurrency > 1) ? this.concurrencyText(snapshot) : '';
     const concurrencyText = concurrency ? ` · 并发 ${concurrency}` : '';
 
     this.item.text = `${icon}KIMI · 5h ${this.pctText(snapshot, '5h')} · 本周 ${this.pctText(snapshot, 'weekly')}${concurrencyText}`;

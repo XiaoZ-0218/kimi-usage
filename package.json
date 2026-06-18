@@ -28,9 +28,6 @@
         "icon": "$(sparkle)"
       },
       {
-        "command": "kimiUsage.showWelcome"
-      },
-      {
         "command": "kimiUsage.refresh",
         "title": "刷新 Kimi 用量",
         "icon": "$(refresh)"

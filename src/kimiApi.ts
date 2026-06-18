@@ -99,8 +99,8 @@ export class KimiApiClient {
       weeklyLimit: parseCount(data.usage.limit),
       monthlyRemaining: parseCount(data.totalQuota.remaining),
       monthlyLimit: parseCount(data.totalQuota.limit),
-      concurrency: data.parallel?.details ? data.parallel.details.length : undefined,
-      concurrencyLimit: data.parallel?.details ? parseCount(data.parallel.limit) : undefined,
+      concurrency: data.parallel ? (data.parallel.details?.length || 1) : undefined,
+      concurrencyLimit: data.parallel ? parseCount(data.parallel.limit) : undefined,
       window5hResetTime: fiveHourLimit.detail.resetTime,
       weeklyResetTime: data.usage.resetTime,
     };

@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.0] - 2026-06-24
+
+### Added
+- 新增局域网用量看板，同一局域网内的手机/浏览器可通过 HTTP 访问实时用量。
+- 新增 `kimiUsage.openDashboard`、`kimiUsage.startDashboard`、`kimiUsage.stopDashboard` 命令。
+- 新增配置项 `kimiUsage.dashboardPort`（默认 6789）与 `kimiUsage.dashboardAutoStart`（默认 true）。
+- 状态栏 tooltip 增加「打开局域网看板」快捷入口。
+
 ## [0.4.1] - 2026-06-18
 
 ### Changed

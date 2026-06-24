@@ -42,7 +42,10 @@ export class DashboardServer {
         reject(err);
       });
       this.server.listen(this.port, () => {
-        this.server?.off('error', reject);
+        // 保留一个通用错误处理器，避免服务器运行期间未处理异常
+        this.server?.on('error', (err) => {
+          console.error('Dashboard server error:', err);
+        });
         resolve();
       });
     });

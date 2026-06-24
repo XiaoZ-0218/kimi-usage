@@ -382,6 +382,7 @@ export function getDashboardHtml(): string {
       monthly: { remaining: 'monthlyRemaining', limit: 'monthlyLimit', reset: null }
     };
     let lastUpdateTime = 0;
+    let lastData = null;
 
     function pct(remaining, limit) {
       if (!limit) return 0;
@@ -440,6 +441,22 @@ export function getDashboardHtml(): string {
       else bar.classList.add('high');
     }
 
+    function snapshotChanged(a, b) {
+      if (!a || !b) return true;
+      return (
+        a.window5hRemaining !== b.window5hRemaining ||
+        a.window5hLimit !== b.window5hLimit ||
+        a.weeklyRemaining !== b.weeklyRemaining ||
+        a.weeklyLimit !== b.weeklyLimit ||
+        a.monthlyRemaining !== b.monthlyRemaining ||
+        a.monthlyLimit !== b.monthlyLimit ||
+        a.concurrency !== b.concurrency ||
+        a.concurrencyLimit !== b.concurrencyLimit ||
+        a.window5hResetTime !== b.window5hResetTime ||
+        a.weeklyResetTime !== b.weeklyResetTime
+      );
+    }
+
     function triggerUpdateAnimation() {
       document.querySelectorAll('.card').forEach((card) => {
         card.classList.remove('updating');
@@ -455,7 +472,12 @@ export function getDashboardHtml(): string {
     function render(data) {
       const errorEl = document.getElementById('error');
       errorEl.classList.remove('visible');
-      triggerUpdateAnimation();
+
+      const changed = snapshotChanged(lastData, data);
+      if (changed) {
+        triggerUpdateAnimation();
+      }
+      lastData = data;
 
       for (const key of ids) {
         const cfg = fields[key];

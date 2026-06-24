@@ -13,10 +13,16 @@ import { getDashboardHtml } from './dashboard';
 export class DashboardServer {
   private server?: http.Server;
   private readonly getSnapshot: () => UsageSnapshot | undefined;
+  private readonly refreshSnapshot: () => Promise<void>;
   private readonly port: number;
 
-  constructor(getSnapshot: () => UsageSnapshot | undefined, port: number) {
+  constructor(
+    getSnapshot: () => UsageSnapshot | undefined,
+    refreshSnapshot: () => Promise<void>,
+    port: number
+  ) {
     this.getSnapshot = getSnapshot;
+    this.refreshSnapshot = refreshSnapshot;
     this.port = port;
   }
 
@@ -90,10 +96,10 @@ export class DashboardServer {
     return `http://${ip}:${this.port}/`;
   }
 
-  private handleRequest(req: http.IncomingMessage, res: http.ServerResponse): void {
+  private async handleRequest(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
     // 设置 CORS 响应头，允许局域网内任意来源跨域访问
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
     if (req.method === 'OPTIONS') {
@@ -108,6 +114,19 @@ export class DashboardServer {
       const html = getDashboardHtml();
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       res.end(html);
+      return;
+    }
+
+    if ((req.method === 'POST' || req.method === 'GET') && url === '/api/refresh') {
+      try {
+        await this.refreshSnapshot();
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: true }));
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ error: message }));
+      }
       return;
     }
 

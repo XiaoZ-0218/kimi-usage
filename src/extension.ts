@@ -35,6 +35,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   const dashboardServer = new DashboardServer(
     () => statusBar.getSnapshot(),
+    () => refresh(false),
     dashboardPort
   );
 
@@ -236,6 +237,7 @@ async function restartDashboardIfPortChanged(): Promise<void> {
   state.dashboardPort = newPort;
   state.dashboardServer = new DashboardServer(
     () => state?.statusBar.getSnapshot(),
+    () => refresh(false),
     newPort
   );
 

@@ -545,7 +545,27 @@ export function getDashboardHtml(): string {
       }
     }
 
-    document.getElementById('refreshBtn').addEventListener('click', fetchUsage);
+    async function refreshFromApi() {
+      const btn = document.getElementById('refreshBtn');
+      const loader = document.getElementById('topLoader');
+      btn.classList.add('spin');
+      loader.classList.add('active');
+      try {
+        const res = await fetch('/api/refresh', { method: 'POST' });
+        if (!res.ok) {
+          const text = await res.text().catch(() => '');
+          throw new Error('HTTP ' + res.status + (text ? ': ' + text : ''));
+        }
+        await fetchUsage();
+      } catch (err) {
+        showError('刷新失败：' + (err.message || String(err)));
+      } finally {
+        btn.classList.remove('spin');
+        loader.classList.remove('active');
+      }
+    }
+
+    document.getElementById('refreshBtn').addEventListener('click', refreshFromApi);
     fetchUsage();
     setInterval(fetchUsage, 3000);
     setInterval(updateRelativeTime, 1000);

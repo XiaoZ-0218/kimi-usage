@@ -20,6 +20,10 @@ export class StatusBarManager {
     this.render();
   }
 
+  getSnapshot(): UsageSnapshot | undefined {
+    return this.lastSnapshot;
+  }
+
   setError(message: string) {
     const icon = this.getIconPrefix();
     this.item.text = `${icon}KIMI · ${message}`;
@@ -103,7 +107,7 @@ export class StatusBarManager {
     }
 
     md.appendMarkdown('\n---\n');
-    md.appendMarkdown(`[刷新](command:kimiUsage.refresh) · [设置 API Key](command:kimiUsage.setToken) · [打开控制台](command:kimiUsage.openConsole)`);
+    md.appendMarkdown(`[刷新](command:kimiUsage.refresh) · [设置 API Key](command:kimiUsage.setToken) · [打开控制台](command:kimiUsage.openConsole) · [打开局域网看板](command:kimiUsage.openDashboard)`);
 
     return md;
   }

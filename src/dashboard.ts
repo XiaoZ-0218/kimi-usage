@@ -91,22 +91,33 @@ export function getDashboardHtml(): string {
       font-size: 13px;
     }
     .refresh-btn {
-      width: 36px;
-      height: 36px;
+      width: 38px;
+      height: 38px;
       border-radius: 50%;
       border: 1px solid var(--border);
       background: var(--surface);
       color: var(--muted);
-      font-size: 18px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       box-shadow: var(--shadow);
-      transition: transform 0.2s, color 0.2s;
+      transition: transform 0.2s, color 0.2s, border-color 0.2s;
+      padding: 0;
     }
-    .refresh-btn:hover { color: var(--text); }
-    .refresh-btn.spin { animation: spin 0.8s linear infinite; }
+    .refresh-btn:hover {
+      color: var(--text);
+      border-color: var(--accent);
+    }
+    .refresh-btn svg {
+      width: 20px;
+      height: 20px;
+      transform-origin: center center;
+      transition: transform 0.2s;
+    }
+    .refresh-btn.spin svg {
+      animation: spin 0.7s linear infinite;
+    }
     @keyframes spin { to { transform: rotate(360deg); } }
 
     .top-loader {
@@ -305,7 +316,14 @@ export function getDashboardHtml(): string {
           <p>实时额度与并发监控</p>
         </div>
       </div>
-      <button class="refresh-btn" id="refreshBtn" title="立即刷新">↻</button>
+      <button class="refresh-btn" id="refreshBtn" title="立即刷新">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+          <path d="M3 3v5h5"/>
+          <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+          <path d="M16 21h5v-5"/>
+        </svg>
+      </button>
     </header>
 
     <div id="error" class="error">无法连接到看板服务，请检查网络或稍后再试。</div>

@@ -3,7 +3,6 @@ import { KimiApiClient, generateMockSnapshot, type UsageSnapshot } from './kimiA
 import { StatusBarManager } from './statusBar';
 import { showWelcomePage } from './welcome';
 import { DashboardServer } from './dashboardServer';
-import { getDashboardHtml } from './dashboard';
 
 const API_KEY_SECRET = 'kimiUsage.apiKey';
 

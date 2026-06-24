@@ -1,0 +1,140 @@
+# =============================================================================
+# PR-Agent GitHub Action Workflow (DeepSeek Edition)
+# =============================================================================
+# 这个工作流会在每个 Pull Request 打开/重新打开/标记为可 review 时，
+# 以及收到 issue_comment（PR 评论）时自动运行 PR-Agent，为 PR 自动生成
+# 描述(description)、评审(review)和代码建议(code suggestions)。
+#
+# 复用说明：
+# 1. 把整个文件复制到新仓库的 .github/workflows/pr_agent.yml
+# 2. 在仓库 Settings -> Secrets and variables -> Actions 中新增 DEEPSEEK_API_KEY
+# 3. 如需切换模型，修改下面的 config.model 和 config.fallback_models 即可
+# =============================================================================
+
+name: PR Agent (DeepSeek)
+
+# ---------------------------------------------------------------------------
+# 触发条件
+# ---------------------------------------------------------------------------
+# pull_request: PR 被打开、重新打开、标记为 ready_for_review 时触发
+# issue_comment: PR 收到评论时触发（可用于手动 @github-actions 重新运行）
+# ---------------------------------------------------------------------------
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+  issue_comment:
+
+jobs:
+  pr_agent_job:
+    # 跳过 Bot 自己的操作，防止循环触发
+    if: ${{ github.event.sender.type != 'Bot' }}
+
+    runs-on: ubuntu-latest
+
+    # -----------------------------------------------------------------------
+    # 权限说明
+    # -----------------------------------------------------------------------
+    # PR-Agent 需要读写 PR、issue 评论以及修改 PR 描述/标题。
+    # GITHUB_TOKEN 由 GitHub 自动提供，无需手动创建。
+    # -----------------------------------------------------------------------
+    permissions:
+      issues: write
+      pull-requests: write
+      contents: write
+
+    name: Run PR Agent with DeepSeek
+
+    steps:
+      - name: PR Agent action step
+        id: pragent
+
+        # PR-Agent 官方 Action。使用 @main 获取最新版；生产环境可 pin 到具体版本。
+        # 示例固定版本：uses: docker://pragent/pr-agent:0.34.2-github_action
+        uses: the-pr-agent/pr-agent@main
+
+        env:
+          # GITHUB_TOKEN 由 GitHub 自动生成，用于读取 PR 信息和发布评论。
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          # -----------------------------------------------------------------
+          # 模型配置
+          # -----------------------------------------------------------------
+          # PR-Agent 底层通过 LiteLLM 调用模型。模型名格式为 "provider/model"。
+          # DeepSeek 可用的模型示例：
+          #   - deepseek/deepseek-v4-flash   (推荐，便宜且快，替代旧的 deepseek-chat)
+          #   - deepseek/deepseek-v4-pro     (推理模型，结构化输出可能不稳定)
+          #   - deepseek/deepseek-chat       (旧别名，2026-07-24 前仍可用，映射到 v4-flash)
+          #   - deepseek/deepseek-reasoner   (旧别名，已弃用)
+          #
+          # 注意：v4-pro 等 reasoning 模型在 code suggestions 阶段容易出现
+          # reasoning_content / tool-call 兼容性问题，因此推荐使用 v4-flash。
+          # -----------------------------------------------------------------
+          config.model: "deepseek/deepseek-v4-flash"
+          config.fallback_models: '["deepseek/deepseek-v4-flash"]'
+
+          # -----------------------------------------------------------------
+          # 自定义模型最大 token 数（必填）
+          # -----------------------------------------------------------------
+          # PR-Agent 内部维护了一个 MAX_TOKENS 白名单。新模型如果不在名单里，
+          # 必须手动设置 custom_model_max_tokens，否则会报错：
+          #   "Model xxx is not defined in MAX_TOKENS ..."
+          # DeepSeek V4 系列官方上下文为 1M，这里设为 256000 足够覆盖大部分 PR。
+          # -----------------------------------------------------------------
+          config.custom_model_max_tokens: "256000"
+
+          # -----------------------------------------------------------------
+          # 回复语言
+          # -----------------------------------------------------------------
+          # PR-Agent 默认用 en-US 输出。设为 zh-CN 后，描述、评审、代码建议等
+          # 动态生成的内容都会用中文回复。静态标签（如表格标题）仍可能为英文。
+          # -----------------------------------------------------------------
+          config.response_language: "zh-CN"
+
+          # -----------------------------------------------------------------
+          # 调试与性能
+          # -----------------------------------------------------------------
+          # ai_timeout: 单次 LLM 调用超时时间（秒）。DeepSeek API 偶尔较慢，建议设大些。
+          # verbosity_level: 0=安静，1=普通，2=详细日志。排查问题时设 2。
+          # -----------------------------------------------------------------
+          config.ai_timeout: "300"
+          config.verbosity_level: "2"
+
+          # -----------------------------------------------------------------
+          # API Key 配置
+          # -----------------------------------------------------------------
+          # 在仓库 Secrets 里创建：DEEPSEEK_API_KEY
+          # 获取地址：https://platform.deepseek.com/
+          #
+          # 同时设置两个变量是为了兼容：
+          #   - DEEPSEEK.KEY      PR-Agent/Dynaconf 风格的配置键
+          #   - DEEPSEEK_API_KEY  LiteLLM 原生读取的环境变量
+          # -----------------------------------------------------------------
+          DEEPSEEK.KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+
+          # -----------------------------------------------------------------
+          # 自动工具开关
+          # -----------------------------------------------------------------
+          # auto_describe:  自动生成/更新 PR 描述
+          # auto_review:    自动生成 PR 评审意见
+          # auto_improve:   自动生成代码改进建议（code suggestions）
+          # 按需开启，全部 false 则只响应评论命令。
+          # -----------------------------------------------------------------
+          github_action_config.auto_review: "true"
+          github_action_config.auto_describe: "true"
+          github_action_config.auto_improve: "true"
+
+          # -----------------------------------------------------------------
+          # 可选：更多常用配置（取消注释即可使用）
+          # -----------------------------------------------------------------
+          # 只在这些 PR 事件上触发自动工具
+          # github_action_config.pr_actions: '["opened", "reopened", "ready_for_review"]'
+          #
+          # 关闭 thinking 模式（仅对支持 reasoning_effort 的模型有效）
+          # config.reasoning_effort: "none"
+          #
+          # 自定义评审指令
+          # pr_reviewer.extra_instructions: "Focus on security, error handling, and Python best practices."
+          #
+          # 增加代码建议数量
+          # pr_code_suggestions.num_code_suggestions: "6"

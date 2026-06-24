@@ -381,6 +381,7 @@ export function getDashboardHtml(): string {
       weekly: { remaining: 'weeklyRemaining', limit: 'weeklyLimit', reset: 'weeklyResetTime' },
       monthly: { remaining: 'monthlyRemaining', limit: 'monthlyLimit', reset: null }
     };
+    let lastUpdateTime = 0;
 
     function pct(remaining, limit) {
       if (!limit) return 0;
@@ -412,6 +413,24 @@ export function getDashboardHtml(): string {
       if (hours > 0) parts.push(hours + 'h');
       if (minutes > 0 || parts.length === 0) parts.push(minutes + 'm');
       return '还剩 ' + parts.join('');
+    }
+
+    function formatRelativeTime(ms) {
+      if (!ms) return '尚未更新';
+      const diff = Math.max(0, Date.now() - ms);
+      const seconds = Math.floor(diff / 1000);
+      const minutes = Math.floor(diff / (60 * 1000));
+      const hours = Math.floor(diff / (60 * 60 * 1000));
+      const days = Math.floor(diff / (24 * 60 * 60 * 1000));
+      if (seconds < 5) return '刚刚';
+      if (seconds < 60) return seconds + ' 秒前';
+      if (minutes < 60) return minutes + ' 分钟前';
+      if (hours < 24) return hours + ' 小时前';
+      return days + ' 天前';
+    }
+
+    function updateRelativeTime() {
+      document.getElementById('updated').textContent = '上次更新：' + formatRelativeTime(lastUpdateTime);
     }
 
     function setBarColor(bar, value) {
@@ -468,15 +487,16 @@ export function getDashboardHtml(): string {
         conEl.textContent = '--';
       }
 
-      const d = new Date(data.timestamp || Date.now());
-      document.getElementById('updated').textContent = '上次更新：' + d.toLocaleString('zh-CN');
+      lastUpdateTime = data.timestamp || Date.now();
+      updateRelativeTime();
     }
 
     function showError(msg) {
       const errorEl = document.getElementById('error');
       errorEl.textContent = msg || '连接失败';
       errorEl.classList.add('visible');
-      document.getElementById('updated').textContent = '更新失败';
+      const suffix = lastUpdateTime ? ' · 上次更新：' + formatRelativeTime(lastUpdateTime) : '';
+      document.getElementById('updated').textContent = '更新失败' + suffix;
     }
 
     async function fetchUsage() {
@@ -506,6 +526,7 @@ export function getDashboardHtml(): string {
     document.getElementById('refreshBtn').addEventListener('click', fetchUsage);
     fetchUsage();
     setInterval(fetchUsage, 3000);
+    setInterval(updateRelativeTime, 1000);
   </script>
 </body>
 </html>`;

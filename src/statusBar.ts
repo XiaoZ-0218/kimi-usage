@@ -92,7 +92,7 @@ export class StatusBarManager {
       md.appendMarkdown(`- **本周额度**：${this.pctText(snapshot, 'weekly')} 剩余\n`);
       md.appendMarkdown(`  - 重置时间：${formatResetTime(snapshot.weeklyResetTime)}，还剩 ${formatCountdown(snapshot.weeklyResetTime)}\n`);
       if (snapshot.monthlyLimit > 0) {
-        md.appendMarkdown(`- **月额度**：${this.pctText(snapshot, 'monthly')} 剩余\n`);
+        md.appendMarkdown(`- **赠送额度**：${this.pctText(snapshot, 'monthly')} 剩余\n`);
       }
       const concurrency = this.concurrencyText(snapshot);
       if (concurrency) {

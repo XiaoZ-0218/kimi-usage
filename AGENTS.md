@@ -4,7 +4,7 @@
 
 ## 项目概述
 
-这是一个 **VSCode 扩展**，在 VSCode 状态栏实时显示 Kimi Code 的 API 用量（5h 滚动窗口、本周额度、月额度）。
+这是一个 **VSCode 扩展**，在 VSCode 状态栏实时显示 Kimi Code 的 API 用量（5h 滚动窗口、本周额度、赠送额度）。
 
 - **名称**: `kimi-usage-statusbar`
 - **版本**: `0.2.0`

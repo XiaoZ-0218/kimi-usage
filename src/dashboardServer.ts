@@ -118,8 +118,10 @@ export class DashboardServer {
         res.end(JSON.stringify({ error: '暂无数据' }));
         return;
       }
+      // 将时间戳更新为当前请求时刻，这样看板每次刷新都能感受到时间变化
+      const response = { ...snapshot, timestamp: Date.now() };
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify(snapshot));
+      res.end(JSON.stringify(response));
       return;
     }
 

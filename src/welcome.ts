@@ -220,7 +220,7 @@ function getWelcomeHtml(webview: vscode.Webview, extensionUri: vscode.Uri): stri
       <li>
         <span class="icon">📅</span>
         <div class="text">
-          <strong>本周 / 本赠送额度</strong><br>
+          <strong>本周 / 赠送额度</strong><br>
           <span>清晰展示周期额度使用进度，提前规划用量</span>
         </div>
       </li>

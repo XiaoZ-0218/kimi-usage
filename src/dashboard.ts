@@ -364,7 +364,7 @@ export function getDashboardHtml(): string {
       <div class="card-header">
         <div class="card-icon monthly">🗓️</div>
         <div class="card-title-wrap">
-          <h2 class="card-title">月额度</h2>
+          <h2 class="card-title">赠送额度</h2>
           <p class="card-subtitle">本月总配额剩余</p>
         </div>
         <span class="card-percent" id="pct-monthly">--</span>

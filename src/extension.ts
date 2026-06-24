@@ -49,7 +49,9 @@ export function activate(context: vscode.ExtensionContext) {
   };
 
   if (dashboardAutoStart) {
-    startDashboard(true);
+    startDashboard(true).then(() => {
+      statusBar.setDashboardRunning(dashboardServer.isRunning());
+    });
   }
 
   context.subscriptions.push(
@@ -178,6 +180,7 @@ async function startDashboard(silent: boolean): Promise<void> {
 
   try {
     await state.dashboardServer.start();
+    state.statusBar.setDashboardRunning(true);
     const url = state.dashboardServer.getLanUrl();
     if (!silent) {
       if (url) {
@@ -189,6 +192,7 @@ async function startDashboard(silent: boolean): Promise<void> {
     logDebug(`看板服务器已启动，端口 ${state.dashboardPort}`);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
+    state.statusBar.setDashboardRunning(false);
     vscode.window.showErrorMessage(`Kimi 用量看板启动失败：${message}`);
     logDebug(`看板服务器启动失败：${message}`);
   }
@@ -198,6 +202,7 @@ async function stopDashboard(): Promise<void> {
   if (!state?.dashboardServer) { return; }
 
   await state.dashboardServer.stop();
+  state.statusBar.setDashboardRunning(false);
   vscode.window.showInformationMessage('Kimi 用量看板已停止');
   logDebug('看板服务器已停止');
 }
@@ -208,6 +213,8 @@ async function openDashboard(): Promise<void> {
   if (!state.dashboardServer.isRunning()) {
     await startDashboard(false);
   }
+
+  state.statusBar.setDashboardRunning(state.dashboardServer.isRunning());
 
   const url = state.dashboardServer.getLanUrl();
   if (url) {
@@ -236,4 +243,5 @@ async function restartDashboardIfPortChanged(): Promise<void> {
   if (autoStart) {
     await startDashboard(true);
   }
+  state.statusBar.setDashboardRunning(state.dashboardServer?.isRunning() ?? false);
 }

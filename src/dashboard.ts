@@ -14,14 +14,34 @@ export function getDashboardHtml(): string {
   <title>Kimi 用量看板</title>
   <style>
     :root {
-      --bg: #0f1115;
-      --card: #1a1d23;
-      --text: #e6e6e6;
-      --muted: #9aa0a6;
-      --accent: #7ee787;
-      --warn: #facc15;
-      --danger: #f87171;
-      --border: #2c3038;
+      --bg: #f6f7f9;
+      --surface: #ffffff;
+      --text: #1f2328;
+      --muted: #656d76;
+      --border: #d1d9e0;
+      --accent: #2da44e;
+      --accent-soft: rgba(45, 164, 78, 0.12);
+      --warn: #d4a017;
+      --warn-soft: rgba(212, 160, 23, 0.12);
+      --danger: #cf222e;
+      --danger-soft: rgba(207, 34, 46, 0.10);
+      --shadow: 0 1px 2px rgba(31, 35, 40, 0.04), 0 2px 8px rgba(31, 35, 40, 0.06);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0d1117;
+        --surface: #161b22;
+        --text: #c9d1d9;
+        --muted: #8b949e;
+        --border: #30363d;
+        --accent: #3fb950;
+        --accent-soft: rgba(63, 185, 80, 0.15);
+        --warn: #d29922;
+        --warn-soft: rgba(210, 153, 34, 0.15);
+        --danger: #f85149;
+        --danger-soft: rgba(248, 81, 73, 0.15);
+        --shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.25);
+      }
     }
     * { box-sizing: border-box; }
     body {
@@ -30,64 +50,126 @@ export function getDashboardHtml(): string {
       background: var(--bg);
       color: var(--text);
       line-height: 1.5;
-      padding: 24px 16px 80px;
+      padding: 20px 16px 88px;
+    }
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
     }
     header {
-      text-align: center;
-      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
     }
-    header h1 {
-      margin: 0 0 6px;
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #7c3aed, #2563eb);
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-size: 22px;
-      font-weight: 600;
-      letter-spacing: 0.5px;
+      color: #fff;
+      box-shadow: var(--shadow);
     }
-    header p {
+    .brand-text h1 {
       margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+    .brand-text p {
+      margin: 2px 0 0;
       color: var(--muted);
       font-size: 13px;
     }
+    .refresh-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow);
+      transition: transform 0.2s, color 0.2s;
+    }
+    .refresh-btn:hover { color: var(--text); }
+    .refresh-btn.spin { animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
     .error {
-      background: rgba(248, 113, 113, 0.12);
+      background: var(--danger-soft);
       border: 1px solid var(--danger);
       color: var(--danger);
-      border-radius: 10px;
+      border-radius: 12px;
       padding: 12px 14px;
       font-size: 14px;
       margin-bottom: 16px;
       display: none;
     }
     .error.visible { display: block; }
-    .grid {
-      display: grid;
-      gap: 14px;
-    }
+
     .card {
-      background: var(--card);
+      background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 14px;
+      border-radius: 16px;
       padding: 18px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow);
     }
     .card-header {
       display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 12px;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .card-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+    .card-icon.window { background: var(--accent-soft); }
+    .card-icon.weekly { background: var(--warn-soft); }
+    .card-icon.monthly { background: rgba(47, 129, 247, 0.12); }
+    .card-icon.concurrency { background: rgba(130, 80, 223, 0.12); }
+    .card-title-wrap {
+      flex: 1;
     }
     .card-title {
-      font-size: 15px;
-      font-weight: 500;
-      color: var(--muted);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
       margin: 0;
     }
+    .card-subtitle {
+      font-size: 12px;
+      color: var(--muted);
+      margin: 2px 0 0;
+    }
     .card-percent {
-      font-size: 20px;
-      font-weight: 700;
+      font-size: 24px;
+      font-weight: 800;
       color: var(--text);
     }
     .progress {
       height: 10px;
-      background: #2c3038;
+      background: var(--bg);
       border-radius: 999px;
       overflow: hidden;
       margin-bottom: 12px;
@@ -95,11 +177,11 @@ export function getDashboardHtml(): string {
     .progress-bar {
       height: 100%;
       border-radius: 999px;
-      transition: width 0.4s ease, background 0.4s ease;
+      transition: width 0.5s ease;
     }
-    .progress-bar.high { background: var(--accent); }
-    .progress-bar.mid { background: var(--warn); }
-    .progress-bar.low { background: var(--danger); }
+    .progress-bar.high { background: linear-gradient(90deg, var(--accent), #4ade80); }
+    .progress-bar.mid { background: linear-gradient(90deg, var(--warn), #facc15); }
+    .progress-bar.low { background: linear-gradient(90deg, var(--danger), #f87171); }
     .card-meta {
       display: flex;
       justify-content: space-between;
@@ -108,11 +190,27 @@ export function getDashboardHtml(): string {
       font-size: 13px;
       color: var(--muted);
     }
+    .concurrency-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .concurrency-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .concurrency-value span {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--muted);
+    }
+
     .updated {
       text-align: center;
       color: var(--muted);
       font-size: 12px;
-      margin-top: 18px;
+      margin-top: 14px;
     }
     footer {
       position: fixed;
@@ -123,24 +221,34 @@ export function getDashboardHtml(): string {
       padding: 14px;
       font-size: 12px;
       color: var(--muted);
-      background: rgba(15, 17, 21, 0.92);
-      backdrop-filter: blur(4px);
+      background: var(--surface);
+      opacity: 0.98;
       border-top: 1px solid var(--border);
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Kimi 用量看板</h1>
-    <p>5h 滚动窗口 · 本周额度 · 月额度</p>
-  </header>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="brand-icon">✨</div>
+        <div class="brand-text">
+          <h1>Kimi 用量看板</h1>
+          <p>实时额度与并发监控</p>
+        </div>
+      </div>
+      <button class="refresh-btn" id="refreshBtn" title="立即刷新">↻</button>
+    </header>
 
-  <div id="error" class="error">无法连接到看板服务，请检查网络或稍后再试。</div>
+    <div id="error" class="error">无法连接到看板服务，请检查网络或稍后再试。</div>
 
-  <div class="grid">
-    <div class="card" id="card-5h">
+    <div class="card">
       <div class="card-header">
-        <h2 class="card-title">5h 滚动窗口</h2>
+        <div class="card-icon window">⏱️</div>
+        <div class="card-title-wrap">
+          <h2 class="card-title">5h 滚动窗口</h2>
+          <p class="card-subtitle">最近 5 小时 API 调用余量</p>
+        </div>
         <span class="card-percent" id="pct-5h">--</span>
       </div>
       <div class="progress"><div class="progress-bar high" id="bar-5h" style="width: 0%"></div></div>
@@ -150,9 +258,13 @@ export function getDashboardHtml(): string {
       </div>
     </div>
 
-    <div class="card" id="card-weekly">
+    <div class="card">
       <div class="card-header">
-        <h2 class="card-title">本周额度</h2>
+        <div class="card-icon weekly">📅</div>
+        <div class="card-title-wrap">
+          <h2 class="card-title">本周额度</h2>
+          <p class="card-subtitle">本周剩余可用额度</p>
+        </div>
         <span class="card-percent" id="pct-weekly">--</span>
       </div>
       <div class="progress"><div class="progress-bar high" id="bar-weekly" style="width: 0%"></div></div>
@@ -162,9 +274,13 @@ export function getDashboardHtml(): string {
       </div>
     </div>
 
-    <div class="card" id="card-monthly">
+    <div class="card">
       <div class="card-header">
-        <h2 class="card-title">月额度</h2>
+        <div class="card-icon monthly">🗓️</div>
+        <div class="card-title-wrap">
+          <h2 class="card-title">月额度</h2>
+          <p class="card-subtitle">本月总配额剩余</p>
+        </div>
         <span class="card-percent" id="pct-monthly">--</span>
       </div>
       <div class="progress"><div class="progress-bar high" id="bar-monthly" style="width: 0%"></div></div>
@@ -173,9 +289,20 @@ export function getDashboardHtml(): string {
         <span id="reset-monthly">--</span>
       </div>
     </div>
-  </div>
 
-  <div class="updated" id="updated">正在加载…</div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon concurrency">⚡</div>
+        <div class="card-title-wrap">
+          <h2 class="card-title">实时并发</h2>
+          <p class="card-subtitle">当前活跃请求数</p>
+        </div>
+        <div class="concurrency-value" id="concurrency">--</div>
+      </div>
+    </div>
+
+    <div class="updated" id="updated">正在加载…</div>
+  </div>
 
   <footer>在 VSCode 中由 kimi-usage-statusbar 提供</footer>
 
@@ -251,6 +378,15 @@ export function getDashboardHtml(): string {
         }
       }
 
+      const con = data.concurrency;
+      const conLimit = data.concurrencyLimit;
+      const conEl = document.getElementById('concurrency');
+      if (con !== undefined && con !== null) {
+        conEl.innerHTML = con + (conLimit ? '<span> / ' + conLimit + '</span>' : '');
+      } else {
+        conEl.textContent = '--';
+      }
+
       const d = new Date(data.timestamp || Date.now());
       document.getElementById('updated').textContent = '上次更新：' + d.toLocaleString('zh-CN');
     }
@@ -263,6 +399,8 @@ export function getDashboardHtml(): string {
     }
 
     async function fetchUsage() {
+      const btn = document.getElementById('refreshBtn');
+      btn.classList.add('spin');
       try {
         const res = await fetch('/api/usage');
         if (!res.ok) {
@@ -276,9 +414,12 @@ export function getDashboardHtml(): string {
         render(data);
       } catch (err) {
         showError('获取用量失败：' + (err.message || String(err)));
+      } finally {
+        btn.classList.remove('spin');
       }
     }
 
+    document.getElementById('refreshBtn').addEventListener('click', fetchUsage);
     fetchUsage();
     setInterval(fetchUsage, 3000);
   </script>

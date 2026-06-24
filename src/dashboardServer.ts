@@ -31,7 +31,10 @@ export class DashboardServer {
       }
 
       this.server = http.createServer((req, res) => this.handleRequest(req, res));
-      this.server.once('error', reject);
+      this.server.once('error', (err) => {
+        this.server = undefined;
+        reject(err);
+      });
       this.server.listen(this.port, () => {
         this.server?.off('error', reject);
         resolve();

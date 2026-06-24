@@ -2,7 +2,7 @@
   "name": "kimi-usage-statusbar",
   "displayName": "Kimi Usage Statusbar",
   "description": "在 VSCode 状态栏显示 Kimi Code 实时用量",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "publisher": "local",
   "license": "MIT",
   "repository": {
@@ -51,6 +51,18 @@
       {
         "command": "kimiUsage.openDebugOutput",
         "title": "打开 Kimi 调试输出"
+      },
+      {
+        "command": "kimiUsage.openDashboard",
+        "title": "在浏览器打开 Kimi 用量看板"
+      },
+      {
+        "command": "kimiUsage.startDashboard",
+        "title": "启动 Kimi 用量看板"
+      },
+      {
+        "command": "kimiUsage.stopDashboard",
+        "title": "停止 Kimi 用量看板"
       }
     ],
     "configuration": {
@@ -82,6 +94,18 @@
           "type": "boolean",
           "default": false,
           "description": "调试模式：在输出面板记录 API 请求与响应"
+        },
+        "kimiUsage.dashboardPort": {
+          "type": "number",
+          "default": 6789,
+          "minimum": 1024,
+          "maximum": 65535,
+          "description": "局域网用量看板 HTTP 服务端口"
+        },
+        "kimiUsage.dashboardAutoStart": {
+          "type": "boolean",
+          "default": true,
+          "description": "激活扩展时自动启动局域网用量看板"
         }
       }
     },
@@ -104,6 +128,15 @@
         },
         {
           "command": "kimiUsage.openDebugOutput"
+        },
+        {
+          "command": "kimiUsage.openDashboard"
+        },
+        {
+          "command": "kimiUsage.startDashboard"
+        },
+        {
+          "command": "kimiUsage.stopDashboard"
         }
       ]
     }

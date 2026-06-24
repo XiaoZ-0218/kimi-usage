@@ -109,6 +109,73 @@ export function getDashboardHtml(): string {
     .refresh-btn.spin { animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    .top-loader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: transparent;
+      z-index: 100;
+      overflow: hidden;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .top-loader.active { opacity: 1; }
+    .top-loader::after {
+      content: '';
+      display: block;
+      height: 100%;
+      width: 40%;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      animation: loaderSlide 0.9s ease-in-out infinite;
+    }
+    @keyframes loaderSlide {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(250%); }
+    }
+
+    .card.updating {
+      animation: cardPulse 0.5s ease;
+    }
+    @keyframes cardPulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.015); }
+      100% { transform: scale(1); }
+    }
+
+    .progress-bar {
+      position: relative;
+      overflow: hidden;
+    }
+    .progress-bar::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+      animation: barShine 2s ease-in-out infinite;
+    }
+    @media (prefers-color-scheme: dark) {
+      .progress-bar::after {
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+      }
+    }
+    @keyframes barShine {
+      0% { left: -100%; }
+      100% { left: 100%; }
+    }
+
+    .updated.flash {
+      animation: textFlash 0.6s ease;
+    }
+    @keyframes textFlash {
+      0%, 100% { color: var(--muted); }
+      50% { color: var(--accent); }
+    }
+
     .error {
       background: var(--danger-soft);
       border: 1px solid var(--danger);
@@ -228,6 +295,7 @@ export function getDashboardHtml(): string {
   </style>
 </head>
 <body>
+  <div class="top-loader" id="topLoader"></div>
   <div class="container">
     <header>
       <div class="brand">
@@ -353,9 +421,22 @@ export function getDashboardHtml(): string {
       else bar.classList.add('high');
     }
 
+    function triggerUpdateAnimation() {
+      document.querySelectorAll('.card').forEach((card) => {
+        card.classList.remove('updating');
+        void card.offsetWidth;
+        card.classList.add('updating');
+      });
+      const updatedEl = document.getElementById('updated');
+      updatedEl.classList.remove('flash');
+      void updatedEl.offsetWidth;
+      updatedEl.classList.add('flash');
+    }
+
     function render(data) {
       const errorEl = document.getElementById('error');
       errorEl.classList.remove('visible');
+      triggerUpdateAnimation();
 
       for (const key of ids) {
         const cfg = fields[key];
@@ -400,7 +481,9 @@ export function getDashboardHtml(): string {
 
     async function fetchUsage() {
       const btn = document.getElementById('refreshBtn');
+      const loader = document.getElementById('topLoader');
       btn.classList.add('spin');
+      loader.classList.add('active');
       try {
         const res = await fetch('/api/usage');
         if (!res.ok) {
@@ -416,6 +499,7 @@ export function getDashboardHtml(): string {
         showError('获取用量失败：' + (err.message || String(err)));
       } finally {
         btn.classList.remove('spin');
+        loader.classList.remove('active');
       }
     }
 

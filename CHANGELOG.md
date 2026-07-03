@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.6.0] - 2026-07-03
+
+### Added
+- 支持分别设置每个额度显示剩余量或已使用量百分比。
+  - 新增配置项 `kimiUsage.displayModeWindow5h`、`kimiUsage.displayModeWeekly`、`kimiUsage.displayModeMonthly`。
+  - 状态栏百分比、tooltip 文字、局域网看板进度条与颜色均会同步切换。
+- 局域网看板现在会根据显示模式动态渲染进度条颜色：已使用百分比越高越红，剩余百分比越低越红。
+
+### Changed
+- 局域网用量看板默认关闭（`kimiUsage.dashboardAutoStart` 默认值改为 `false`）。
+- 统一显示模式配置项前缀，使 VSCode 设置界面按字母排序时三个模式选项聚合在一起。
+- 优化赠送额度相关文案。
+
+### Fixed
+- 修复多窗口或多进程同时启动看板时的 `EADDRINUSE` 端口冲突问题：启动前自动探测空闲端口并切换。
+- 避免当前实例看板已在运行时重复启动。
+
 ## [0.5.0] - 2026-06-24
 
 ### Added

@@ -9,20 +9,24 @@ import http from 'http';
 import { networkInterfaces } from 'os';
 import type { UsageSnapshot } from './kimiApi';
 import { getDashboardHtml } from './dashboard';
+import type { DisplayModeConfig } from './displayMode';
 
 export class DashboardServer {
   private server?: http.Server;
   private readonly getSnapshot: () => UsageSnapshot | undefined;
   private readonly refreshSnapshot: () => Promise<void>;
+  private readonly getDisplayModes: () => DisplayModeConfig;
   private readonly port: number;
 
   constructor(
     getSnapshot: () => UsageSnapshot | undefined,
     refreshSnapshot: () => Promise<void>,
+    getDisplayModes: () => DisplayModeConfig,
     port: number
   ) {
     this.getSnapshot = getSnapshot;
     this.refreshSnapshot = refreshSnapshot;
+    this.getDisplayModes = getDisplayModes;
     this.port = port;
   }
 
@@ -114,7 +118,7 @@ export class DashboardServer {
     const url = req.url || '/';
 
     if (req.method === 'GET' && url === '/') {
-      const html = getDashboardHtml();
+      const html = getDashboardHtml(this.getDisplayModes());
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       res.end(html);
       return;

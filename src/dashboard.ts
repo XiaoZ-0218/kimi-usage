@@ -5,7 +5,9 @@
  * 可在任意浏览器（包括手机）中直接打开。
  */
 
-export function getDashboardHtml(): string {
+import type { DisplayModeConfig } from './displayMode';
+
+export function getDashboardHtml(displayModes: DisplayModeConfig): string {
   return `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -333,13 +335,13 @@ export function getDashboardHtml(): string {
         <div class="card-icon window">⏱️</div>
         <div class="card-title-wrap">
           <h2 class="card-title">5h 滚动窗口</h2>
-          <p class="card-subtitle">最近 5 小时 API 调用余量</p>
+          <p class="card-subtitle" id="subtitle-5h">最近 5 小时 API 调用余量</p>
         </div>
         <span class="card-percent" id="pct-5h">--</span>
       </div>
       <div class="progress"><div class="progress-bar high" id="bar-5h" style="width: 0%"></div></div>
       <div class="card-meta">
-        <span id="remain-5h">-- / --</span>
+        <span id="remain-5h">--</span>
         <span id="reset-5h">--</span>
       </div>
     </div>
@@ -349,13 +351,13 @@ export function getDashboardHtml(): string {
         <div class="card-icon weekly">📅</div>
         <div class="card-title-wrap">
           <h2 class="card-title">本周额度</h2>
-          <p class="card-subtitle">本周剩余可用额度</p>
+          <p class="card-subtitle" id="subtitle-weekly">本周剩余可用额度</p>
         </div>
         <span class="card-percent" id="pct-weekly">--</span>
       </div>
       <div class="progress"><div class="progress-bar high" id="bar-weekly" style="width: 0%"></div></div>
       <div class="card-meta">
-        <span id="remain-weekly">-- / --</span>
+        <span id="remain-weekly">--</span>
         <span id="reset-weekly">--</span>
       </div>
     </div>
@@ -365,13 +367,13 @@ export function getDashboardHtml(): string {
         <div class="card-icon monthly">🗓️</div>
         <div class="card-title-wrap">
           <h2 class="card-title">赠送额度</h2>
-          <p class="card-subtitle">赠送额度剩余</p>
+          <p class="card-subtitle" id="subtitle-monthly">赠送额度剩余</p>
         </div>
         <span class="card-percent" id="pct-monthly">--</span>
       </div>
       <div class="progress"><div class="progress-bar high" id="bar-monthly" style="width: 0%"></div></div>
       <div class="card-meta">
-        <span id="remain-monthly">-- / --</span>
+        <span id="remain-monthly">--</span>
         <span id="reset-monthly">--</span>
       </div>
     </div>
@@ -393,18 +395,24 @@ export function getDashboardHtml(): string {
   <footer>在 VSCode 中由 kimi-usage-statusbar 提供</footer>
 
   <script>
+    const displayModes = {
+      '5h': '${displayModes.window5h}',
+      weekly: '${displayModes.weekly}',
+      monthly: '${displayModes.monthly}'
+    };
     const ids = ['5h', 'weekly', 'monthly'];
     const fields = {
-      '5h': { remaining: 'window5hRemaining', limit: 'window5hLimit', reset: 'window5hResetTime' },
-      weekly: { remaining: 'weeklyRemaining', limit: 'weeklyLimit', reset: 'weeklyResetTime' },
-      monthly: { remaining: 'monthlyRemaining', limit: 'monthlyLimit', reset: null }
+      '5h': { remaining: 'window5hRemaining', limit: 'window5hLimit', reset: 'window5hResetTime', subtitle: '最近 5 小时 API 调用' },
+      weekly: { remaining: 'weeklyRemaining', limit: 'weeklyLimit', reset: 'weeklyResetTime', subtitle: '本周额度' },
+      monthly: { remaining: 'monthlyRemaining', limit: 'monthlyLimit', reset: null, subtitle: '赠送额度' }
     };
     let lastUpdateTime = 0;
     let lastData = null;
 
-    function pct(remaining, limit) {
+    function pct(remaining, limit, mode) {
       if (!limit) return 0;
-      return Math.max(0, Math.min(100, Math.round((remaining / limit) * 100)));
+      const raw = mode === 'used' ? (limit - remaining) / limit : remaining / limit;
+      return Math.max(0, Math.min(100, Math.round(raw * 100)));
     }
 
     function formatResetTime(iso) {
@@ -452,11 +460,17 @@ export function getDashboardHtml(): string {
       document.getElementById('updated').textContent = '上次更新：' + formatRelativeTime(lastUpdateTime);
     }
 
-    function setBarColor(bar, value) {
+    function setBarColor(bar, value, mode) {
       bar.classList.remove('high', 'mid', 'low');
-      if (value <= 20) bar.classList.add('low');
-      else if (value <= 50) bar.classList.add('mid');
-      else bar.classList.add('high');
+      if (mode === 'used') {
+        if (value >= 80) bar.classList.add('low');
+        else if (value >= 50) bar.classList.add('mid');
+        else bar.classList.add('high');
+      } else {
+        if (value <= 20) bar.classList.add('low');
+        else if (value <= 50) bar.classList.add('mid');
+        else bar.classList.add('high');
+      }
     }
 
     function snapshotChanged(a, b) {
@@ -501,14 +515,17 @@ export function getDashboardHtml(): string {
         const cfg = fields[key];
         const remaining = data[cfg.remaining] ?? 0;
         const limit = data[cfg.limit] ?? 0;
-        const value = pct(remaining, limit);
+        const mode = displayModes[key];
+        const value = pct(remaining, limit, mode);
+        const label = mode === 'used' ? '已使用' : '剩余';
 
         document.getElementById('pct-' + key).textContent = value + '%';
-        document.getElementById('remain-' + key).textContent = remaining + ' / ' + limit;
+        document.getElementById('remain-' + key).textContent = label;
+        document.getElementById('subtitle-' + key).textContent = cfg.subtitle + label;
 
         const bar = document.getElementById('bar-' + key);
         bar.style.width = value + '%';
-        setBarColor(bar, value);
+        setBarColor(bar, value, mode);
 
         const resetEl = document.getElementById('reset-' + key);
         if (cfg.reset) {

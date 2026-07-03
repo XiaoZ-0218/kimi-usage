@@ -12,9 +12,9 @@ export interface DisplayModeConfig {
 export function getDisplayModeConfig(): DisplayModeConfig {
   const cfg = vscode.workspace.getConfiguration('kimiUsage');
   return {
-    window5h: cfg.get<DisplayMode>('window5hDisplayMode', 'remaining'),
-    weekly: cfg.get<DisplayMode>('weeklyDisplayMode', 'remaining'),
-    monthly: cfg.get<DisplayMode>('monthlyDisplayMode', 'remaining'),
+    window5h: cfg.get<DisplayMode>('displayModeWindow5h', 'remaining'),
+    weekly: cfg.get<DisplayMode>('displayModeWeekly', 'remaining'),
+    monthly: cfg.get<DisplayMode>('displayModeMonthly', 'remaining'),
   };
 }
 

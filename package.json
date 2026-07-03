@@ -68,17 +68,35 @@
     "configuration": {
       "title": "Kimi Usage Statusbar",
       "properties": {
+        "kimiUsage.displayModeWindow5h": {
+          "type": "string",
+          "enum": ["remaining", "used"],
+          "default": "remaining",
+          "description": "5h 滚动窗口显示模式：remaining（剩余百分比）/ used（已使用百分比）"
+        },
+        "kimiUsage.displayModeWeekly": {
+          "type": "string",
+          "enum": ["remaining", "used"],
+          "default": "remaining",
+          "description": "本周额度显示模式：remaining（剩余百分比）/ used（已使用百分比）"
+        },
+        "kimiUsage.displayModeMonthly": {
+          "type": "string",
+          "enum": ["remaining", "used"],
+          "default": "remaining",
+          "description": "赠送额度显示模式：remaining（剩余百分比）/ used（已使用百分比）"
+        },
+        "kimiUsage.statusBarIcon": {
+          "type": "string",
+          "default": "sparkle",
+          "description": "状态栏图标（VSCode codicon 名称，留空则隐藏图标）"
+        },
         "kimiUsage.pollIntervalMinutes": {
           "type": "number",
           "default": 5,
           "minimum": 1,
           "maximum": 120,
           "description": "自动刷新 Kimi 用量的间隔（分钟）"
-        },
-        "kimiUsage.statusBarIcon": {
-          "type": "string",
-          "default": "sparkle",
-          "description": "状态栏图标（VSCode codicon 名称，留空则隐藏图标）"
         },
         "kimiUsage.apiBaseUrl": {
           "type": "string",
@@ -106,24 +124,6 @@
           "type": "boolean",
           "default": false,
           "description": "激活扩展时自动启动局域网用量看板"
-        },
-        "kimiUsage.window5hDisplayMode": {
-          "type": "string",
-          "enum": ["remaining", "used"],
-          "default": "remaining",
-          "description": "5h 滚动窗口显示模式：remaining（剩余百分比）/ used（已使用百分比）"
-        },
-        "kimiUsage.weeklyDisplayMode": {
-          "type": "string",
-          "enum": ["remaining", "used"],
-          "default": "remaining",
-          "description": "本周额度显示模式：remaining（剩余百分比）/ used（已使用百分比）"
-        },
-        "kimiUsage.monthlyDisplayMode": {
-          "type": "string",
-          "enum": ["remaining", "used"],
-          "default": "remaining",
-          "description": "赠送额度显示模式：remaining（剩余百分比）/ used（已使用百分比）"
         }
       }
     },

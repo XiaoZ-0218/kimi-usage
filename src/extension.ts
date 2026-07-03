@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import net from 'net';
 import { KimiApiClient, generateMockSnapshot, type UsageSnapshot } from './kimiApi';
 import { StatusBarManager } from './statusBar';
 import { showWelcomePage } from './welcome';
@@ -31,7 +32,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   const cfg = vscode.workspace.getConfiguration('kimiUsage');
   const dashboardPort = cfg.get<number>('dashboardPort', 6789);
-  const dashboardAutoStart = cfg.get<boolean>('dashboardAutoStart', true);
+  const dashboardAutoStart = cfg.get<boolean>('dashboardAutoStart', false);
 
   const dashboardServer = new DashboardServer(
     () => statusBar.getSnapshot(),
@@ -176,8 +177,68 @@ function openSettings() {
   vscode.commands.executeCommand('workbench.action.openSettings', '@ext:local.kimi-usage-statusbar');
 }
 
+function isPortInUse(port: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    const tester = net
+      .createServer()
+      .once('error', (err: NodeJS.ErrnoException) => {
+        resolve(err.code === 'EADDRINUSE');
+      })
+      .once('listening', () => {
+        tester.close(() => resolve(false));
+      })
+      .listen(port);
+  });
+}
+
+async function findAvailablePort(startPort: number): Promise<number | undefined> {
+  for (let port = startPort; port <= 65535; port++) {
+    if (!(await isPortInUse(port))) {
+      return port;
+    }
+  }
+  return undefined;
+}
+
 async function startDashboard(silent: boolean): Promise<void> {
-  if (!state?.dashboardServer) { return; }
+  if (!state) { return; }
+
+  if (state.dashboardServer?.isRunning()) {
+    if (!silent) {
+      const url = state.dashboardServer.getLanUrl();
+      vscode.window.showInformationMessage(`Kimi 用量看板已经在运行：${url ?? `端口 ${state.dashboardPort}`}`);
+    }
+    return;
+  }
+
+  const cfg = vscode.workspace.getConfiguration('kimiUsage');
+  const preferredPort = cfg.get<number>('dashboardPort', 6789);
+  const port = await findAvailablePort(preferredPort);
+
+  if (!port) {
+    state.statusBar.setDashboardRunning(false);
+    if (!silent) {
+      vscode.window.showErrorMessage('Kimi 用量看板启动失败：找不到可用的空闲端口');
+    }
+    logDebug('看板服务器启动失败：找不到可用端口');
+    return;
+  }
+
+  if (port !== preferredPort) {
+    logDebug(`端口 ${preferredPort} 被占用，自动切换到 ${port}`);
+    if (!silent) {
+      vscode.window.showInformationMessage(`端口 ${preferredPort} 已被占用，看板将使用端口 ${port}`);
+    }
+  }
+
+  if (port !== state.dashboardPort || !state.dashboardServer) {
+    state.dashboardPort = port;
+    state.dashboardServer = new DashboardServer(
+      () => state?.statusBar.getSnapshot(),
+      () => refresh(false),
+      port
+    );
+  }
 
   try {
     await state.dashboardServer.start();
@@ -187,14 +248,16 @@ async function startDashboard(silent: boolean): Promise<void> {
       if (url) {
         vscode.window.showInformationMessage(`Kimi 用量看板已启动：${url}`);
       } else {
-        vscode.window.showInformationMessage('Kimi 用量看板已启动，但未能获取局域网地址');
+        vscode.window.showInformationMessage(`Kimi 用量看板已启动（端口 ${port}）`);
       }
     }
-    logDebug(`看板服务器已启动，端口 ${state.dashboardPort}`);
+    logDebug(`看板服务器已启动，端口 ${port}`);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     state.statusBar.setDashboardRunning(false);
-    vscode.window.showErrorMessage(`Kimi 用量看板启动失败：${message}`);
+    if (!silent) {
+      vscode.window.showErrorMessage(`Kimi 用量看板启动失败：${message}`);
+    }
     logDebug(`看板服务器启动失败：${message}`);
   }
 }
@@ -230,20 +293,24 @@ async function restartDashboardIfPortChanged(): Promise<void> {
 
   const cfg = vscode.workspace.getConfiguration('kimiUsage');
   const newPort = cfg.get<number>('dashboardPort', 6789);
+  const autoStart = cfg.get<boolean>('dashboardAutoStart', false);
 
-  if (newPort === state.dashboardPort) { return; }
+  // 自动启动关闭时，若看板正在运行则停止
+  if (!autoStart && state.dashboardServer?.isRunning()) {
+    await stopDashboard();
+    return;
+  }
+
+  // 端口未变且已在运行，无需操作
+  if (newPort === state.dashboardPort && state.dashboardServer?.isRunning()) {
+    return;
+  }
 
   await state.dashboardServer?.stop();
-  state.dashboardPort = newPort;
-  state.dashboardServer = new DashboardServer(
-    () => state?.statusBar.getSnapshot(),
-    () => refresh(false),
-    newPort
-  );
 
-  const autoStart = cfg.get<boolean>('dashboardAutoStart', true);
   if (autoStart) {
     await startDashboard(true);
+  } else {
+    state.statusBar.setDashboardRunning(false);
   }
-  state.statusBar.setDashboardRunning(state.dashboardServer?.isRunning() ?? false);
 }

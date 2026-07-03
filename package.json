@@ -104,7 +104,7 @@
         },
         "kimiUsage.dashboardAutoStart": {
           "type": "boolean",
-          "default": true,
+          "default": false,
           "description": "激活扩展时自动启动局域网用量看板"
         }
       }

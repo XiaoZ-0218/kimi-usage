@@ -4,6 +4,7 @@ import { KimiApiClient, generateMockSnapshot, type UsageSnapshot } from './kimiA
 import { StatusBarManager } from './statusBar';
 import { showWelcomePage } from './welcome';
 import { DashboardServer } from './dashboardServer';
+import { getDisplayModeConfig, type DisplayModeConfig } from './displayMode';
 
 const API_KEY_SECRET = 'kimiUsage.apiKey';
 
@@ -15,6 +16,7 @@ interface AppState {
   outputChannel: vscode.OutputChannel;
   dashboardServer: DashboardServer | undefined;
   dashboardPort: number;
+  dashboardDisplayModes: DisplayModeConfig;
 }
 
 let state: AppState | undefined;
@@ -37,6 +39,7 @@ export function activate(context: vscode.ExtensionContext) {
   const dashboardServer = new DashboardServer(
     () => statusBar.getSnapshot(),
     () => refresh(false),
+    getDisplayModeConfig,
     dashboardPort
   );
 
@@ -48,6 +51,7 @@ export function activate(context: vscode.ExtensionContext) {
     outputChannel,
     dashboardServer,
     dashboardPort,
+    dashboardDisplayModes: getDisplayModeConfig(),
   };
 
   if (dashboardAutoStart) {
@@ -73,7 +77,7 @@ export function activate(context: vscode.ExtensionContext) {
       if (e.affectsConfiguration('kimiUsage')) {
         schedulePoll();
         refresh(false);
-        restartDashboardIfPortChanged();
+        restartDashboardIfNeeded();
       }
     })
   );
@@ -236,6 +240,7 @@ async function startDashboard(silent: boolean): Promise<void> {
     state.dashboardServer = new DashboardServer(
       () => state?.statusBar.getSnapshot(),
       () => refresh(false),
+      () => state?.dashboardDisplayModes ?? getDisplayModeConfig(),
       port
     );
   }
@@ -288,21 +293,29 @@ async function openDashboard(): Promise<void> {
   }
 }
 
-async function restartDashboardIfPortChanged(): Promise<void> {
+async function restartDashboardIfNeeded(): Promise<void> {
   if (!state) { return; }
 
   const cfg = vscode.workspace.getConfiguration('kimiUsage');
   const newPort = cfg.get<number>('dashboardPort', 6789);
   const autoStart = cfg.get<boolean>('dashboardAutoStart', false);
+  const newModes = getDisplayModeConfig();
+
+  const portChanged = newPort !== state.dashboardPort;
+  const modesChanged =
+    newModes.window5h !== state.dashboardDisplayModes.window5h ||
+    newModes.weekly !== state.dashboardDisplayModes.weekly ||
+    newModes.monthly !== state.dashboardDisplayModes.monthly;
 
   // 自动启动关闭时，若看板正在运行则停止
   if (!autoStart && state.dashboardServer?.isRunning()) {
     await stopDashboard();
+    state.dashboardDisplayModes = newModes;
     return;
   }
 
-  // 端口未变且已在运行，无需操作
-  if (newPort === state.dashboardPort && state.dashboardServer?.isRunning()) {
+  // 端口和显示模式都没变且已在运行，无需操作
+  if (!portChanged && !modesChanged && state.dashboardServer?.isRunning()) {
     return;
   }
 
@@ -313,4 +326,5 @@ async function restartDashboardIfPortChanged(): Promise<void> {
   } else {
     state.statusBar.setDashboardRunning(false);
   }
+  state.dashboardDisplayModes = newModes;
 }

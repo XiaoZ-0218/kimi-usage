@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import type { UsageSnapshot } from './kimiApi';
+import { getDisplayModeConfig, getDisplayValue } from './displayMode';
 
 export class StatusBarManager {
   private item: vscode.StatusBarItem;
@@ -53,24 +54,21 @@ export class StatusBarManager {
   }
 
   private pctText(snapshot: UsageSnapshot, type: '5h' | 'weekly' | 'monthly'): string {
-    let remaining: number;
-    let limit: number;
+    const modes = getDisplayModeConfig();
+    let mode: 'remaining' | 'used';
     switch (type) {
       case '5h':
-        remaining = snapshot.window5hRemaining;
-        limit = snapshot.window5hLimit;
+        mode = modes.window5h;
         break;
       case 'weekly':
-        remaining = snapshot.weeklyRemaining;
-        limit = snapshot.weeklyLimit;
+        mode = modes.weekly;
         break;
       case 'monthly':
-        remaining = snapshot.monthlyRemaining;
-        limit = snapshot.monthlyLimit;
+        mode = modes.monthly;
         break;
     }
-    if (!limit) { return '0%'; }
-    return `${Math.round((remaining / limit) * 100)}%`;
+    const { pct } = getDisplayValue(snapshot, type, mode);
+    return `${pct}%`;
   }
 
   private concurrencyText(snapshot: UsageSnapshot): string {
@@ -98,12 +96,17 @@ export class StatusBarManager {
     md.appendMarkdown('### Kimi Code 用量\n\n');
 
     if (snapshot) {
-      md.appendMarkdown(`- **5h 滚动窗口**：${this.pctText(snapshot, '5h')} 剩余\n`);
+      const modes = getDisplayModeConfig();
+      const window5h = getDisplayValue(snapshot, '5h', modes.window5h);
+      const weekly = getDisplayValue(snapshot, 'weekly', modes.weekly);
+      const monthly = getDisplayValue(snapshot, 'monthly', modes.monthly);
+
+      md.appendMarkdown(`- **5h 滚动窗口**：${window5h.pct}% ${window5h.label}\n`);
       md.appendMarkdown(`  - 重置时间：${formatResetTime(snapshot.window5hResetTime)}，还剩 ${formatCountdown(snapshot.window5hResetTime)}\n`);
-      md.appendMarkdown(`- **本周额度**：${this.pctText(snapshot, 'weekly')} 剩余\n`);
+      md.appendMarkdown(`- **本周额度**：${weekly.pct}% ${weekly.label}\n`);
       md.appendMarkdown(`  - 重置时间：${formatResetTime(snapshot.weeklyResetTime)}，还剩 ${formatCountdown(snapshot.weeklyResetTime)}\n`);
       if (snapshot.monthlyLimit > 0) {
-        md.appendMarkdown(`- **赠送额度**：${this.pctText(snapshot, 'monthly')} 剩余\n`);
+        md.appendMarkdown(`- **赠送额度**：${monthly.pct}% ${monthly.label}\n`);
       }
       const concurrency = this.concurrencyText(snapshot);
       if (concurrency) {

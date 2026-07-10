@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.7.0] - 2026-07-10
+
+### Removed
+- 删除局域网用量看板功能。
+  - 移除 `src/dashboard.ts` 与 `src/dashboardServer.ts`。
+  - 移除命令 `kimiUsage.openDashboard`、`kimiUsage.startDashboard`、`kimiUsage.stopDashboard`。
+  - 移除配置项 `kimiUsage.dashboardPort` 与 `kimiUsage.dashboardAutoStart`。
+  - 状态栏 tooltip 不再显示看板相关快捷入口。
+
 ## [0.6.0] - 2026-07-03
 
 ### Added

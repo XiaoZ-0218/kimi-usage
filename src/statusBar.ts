@@ -5,13 +5,11 @@ import { getDisplayModeConfig, getDisplayValue } from './displayMode';
 export class StatusBarManager {
   private item: vscode.StatusBarItem;
   private lastSnapshot: UsageSnapshot | undefined;
-  private dashboardRunning: boolean;
 
   constructor() {
     this.item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
     this.item.command = 'kimiUsage.openSettings';
     this.item.show();
-    this.dashboardRunning = false;
   }
 
   dispose() {
@@ -25,11 +23,6 @@ export class StatusBarManager {
 
   getSnapshot(): UsageSnapshot | undefined {
     return this.lastSnapshot;
-  }
-
-  setDashboardRunning(running: boolean) {
-    this.dashboardRunning = running;
-    this.render();
   }
 
   setError(message: string) {
@@ -117,10 +110,7 @@ export class StatusBarManager {
     }
 
     md.appendMarkdown('\n---\n');
-    const dashboardLink = this.dashboardRunning
-      ? `[打开看板](command:kimiUsage.openDashboard) · [停止看板](command:kimiUsage.stopDashboard)`
-      : `[启动看板](command:kimiUsage.startDashboard)`;
-    md.appendMarkdown(`[刷新](command:kimiUsage.refresh) · [设置 API Key](command:kimiUsage.setToken) · [打开控制台](command:kimiUsage.openConsole) · ${dashboardLink}`);
+    md.appendMarkdown('[刷新](command:kimiUsage.refresh) · [设置 API Key](command:kimiUsage.setToken) · [打开控制台](command:kimiUsage.openConsole)');
 
     return md;
   }

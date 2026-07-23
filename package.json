@@ -2,7 +2,7 @@
   "name": "kimi-usage-statusbar",
   "displayName": "Kimi Usage Statusbar",
   "description": "在 VSCode 状态栏显示 Kimi Code 实时用量",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "publisher": "XiaoZ-0218",
   "license": "MIT",
   "repository": {

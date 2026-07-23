@@ -1,25 +1,29 @@
 # =============================================================================
 # VSCode Extension Auto-Publish Workflow
 # =============================================================================
-# 当 GitHub Release 发布时，自动编译并发布到 VSCode 扩展商店。
+# 触发方式：push 一个以 v 开头的 tag（如 v0.8.1）
+# 自动执行：提取 CHANGELOG → 创建 GitHub Release → 编译 → 发布到 VSCode 商店
 #
 # 前置条件：
-# 1. 在仓库 Settings -> Secrets and variables -> Actions 中添加：
+# 1. 仓库 Settings -> Secrets and variables -> Actions 中添加：
 #    - VSCE_PAT: Azure DevOps Personal Access Token
 #      （创建方式：https://dev.azure.com → Personal Access Tokens →
 #       Scopes: Marketplace → Manage）
 # =============================================================================
 
-name: Publish to VSCode Marketplace
+name: Release & Publish
 
 on:
-  release:
-    types: [published]
-  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
 
 jobs:
-  publish:
+  release-and-publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
     steps:
       - uses: actions/checkout@v7
 
@@ -32,6 +36,33 @@ jobs:
 
       - name: Compile
         run: npm run compile
+
+      - name: Extract changelog for this version
+        id: changelog
+        run: |
+          VERSION="${{ github.ref_name }}"
+          VERSION="${VERSION#v}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          # 提取当前版本的 changelog 内容
+          CHANGELOG=$(awk -v ver="## [$VERSION]" '
+            $0 ~ ver { found=1; next }
+            found && /^## \[/ { exit }
+            found { print }
+          ' CHANGELOG.md)
+          # 多行输出
+          echo 'notes<<EOF' >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
+
+      - name: Package VSIX
+        run: npx @vscode/vsce package
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: v${{ steps.changelog.outputs.version }}
+          body: ${{ steps.changelog.outputs.notes }}
+          files: '*.vsix'
 
       - name: Publish to VSCode Marketplace
         run: npx @vscode/vsce publish -p ${{ secrets.VSCE_PAT }}

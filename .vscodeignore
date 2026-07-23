@@ -9,7 +9,6 @@ node_modules/**
 **/*.ts
 **/*.example
 icon-source.png
-logo.png
 scripts/**
 *.vsix
 AGENTS.md

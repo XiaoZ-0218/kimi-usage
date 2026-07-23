@@ -44,13 +44,12 @@ jobs:
           VERSION="${{ github.ref_name }}"
           VERSION="${VERSION#v}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          # 提取当前版本的 changelog 内容
-          CHANGELOG=$(awk -v ver="## [$VERSION]" '
-            $0 ~ ver { found=1; next }
+          # 提取当前版本的 changelog 内容（用 index 做字符串匹配，避免 [ ] 被当作正则）
+          CHANGELOG=$(awk -v ver="## [${VERSION}]" '
+            index($0, ver) { found=1; next }
             found && /^## \[/ { exit }
             found { print }
           ' CHANGELOG.md)
-          # 多行输出
           echo 'notes<<EOF' >> $GITHUB_OUTPUT
           echo "$CHANGELOG" >> $GITHUB_OUTPUT
           echo 'EOF' >> $GITHUB_OUTPUT

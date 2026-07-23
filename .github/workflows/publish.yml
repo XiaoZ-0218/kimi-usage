@@ -1,0 +1,38 @@
+# =============================================================================
+# VSCode Extension Auto-Publish Workflow
+# =============================================================================
+# 当 GitHub Release 发布时，自动编译并发布到 VSCode 扩展商店。
+#
+# 前置条件：
+# 1. 在仓库 Settings -> Secrets and variables -> Actions 中添加：
+#    - VSCE_PAT: Azure DevOps Personal Access Token
+#      （创建方式：https://dev.azure.com → Personal Access Tokens →
+#       Scopes: Marketplace → Manage）
+# =============================================================================
+
+name: Publish to VSCode Marketplace
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Compile
+        run: npm run compile
+
+      - name: Publish to VSCode Marketplace
+        run: npx @vscode/vsce publish -p ${{ secrets.VSCE_PAT }}

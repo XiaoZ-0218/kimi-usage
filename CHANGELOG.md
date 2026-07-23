@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.8.4] - 2026-07-23
+
+### Changed
+- 调整扩展商店分类：`Other + Visualization` → `AI + Data Science + Other`，更贴合 Kimi AI 工具和用量监控的实际定位。
+
 ## [0.8.3] - 2026-07-23
 
 ### Changed

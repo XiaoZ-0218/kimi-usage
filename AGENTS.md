@@ -23,7 +23,11 @@
 ├── package.json       # VSCode 扩展清单 + npm scripts + 依赖
 │   main: ./out/extension.js
 ├── tsconfig.json      # TypeScript 配置（target ES2022, module commonjs, strict: true）
-├── icon.png           # 扩展图标
+├── icon.png           # 扩展图标（128×128，月兔，透明底，统一 10% 留白）
+├── icon-source.png    # 图标高清源（512×512，与 icon 同构图）
+├── logo.png           # 品牌 Logo（512×512，月兔 + Kimi 字标，透明底，同留白）
+├── scripts/
+│   └── process_icons.py  # 统一生成上述资源（透明底 + 紧裁 + 正方形）
 ├── .gitignore         # 忽略 out/, node_modules/, .vscode-test/, *.vsix
 ├── .vscodeignore      # 打包时忽略源码、map、测试目录等
 ├── CHANGELOG.md       # 版本变更记录

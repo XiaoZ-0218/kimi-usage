@@ -1,5 +1,9 @@
 # Kimi Usage Statusbar
 
+<p align="center">
+  <img src="logo.png" alt="Kimi Usage Statusbar" width="160" />
+</p>
+
 在 VSCode 状态栏实时显示 Kimi Code 用量：
 
 ```

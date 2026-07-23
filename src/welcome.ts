@@ -76,9 +76,12 @@ function getWelcomeHtml(webview: vscode.Webview, extensionUri: vscode.Uri): stri
       margin-bottom: 32px;
     }
     .header img {
-      width: 64px;
-      height: 64px;
-      border-radius: 12px;
+      width: 72px;
+      height: 72px;
+      object-fit: contain;
+      flex-shrink: 0;
+      /* 透明背景图标，随主题底色自然融合 */
+      background: transparent;
     }
     .header h1 {
       font-size: 28px;

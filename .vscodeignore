@@ -8,3 +8,8 @@ node_modules/**
 **/*.map
 **/*.ts
 **/*.example
+icon-source.png
+logo.png
+scripts/**
+*.vsix
+AGENTS.md

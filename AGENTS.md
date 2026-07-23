@@ -7,7 +7,8 @@
 这是一个 **VSCode 扩展**，在 VSCode 状态栏实时显示 Kimi Code 的 API 用量（5h 滚动窗口、本周额度、赠送额度）。
 
 - **名称**: `kimi-usage-statusbar`
-- **版本**: `0.2.0`
+- **发布者**: `XiaoZ-0218`
+- **商店地址**: https://marketplace.visualstudio.com/items?itemName=XiaoZ-0218.kimi-usage-statusbar
 - **技术栈**: TypeScript + VSCode Extension API
 - **运行时**: Node.js（VSCode 内置）
 - **语言**: 项目内所有注释、文档、UI 文案均为中文
@@ -15,10 +16,16 @@
 ## 项目结构
 
 ```
+├── .github/
+│   └── workflows/
+│       ├── publish.yml    # 自动发布：tag push → Release → VSCode 商店
+│       └── pr_agent.yml   # PR-Agent：自动代码审查（DeepSeek）
 ├── src/
 │   ├── extension.ts   # 扩展入口：activate/deactivate、命令注册、轮询调度
 │   ├── kimiApi.ts     # API 客户端：HTTP 请求、响应解析、Mock 数据生成
-│   └── statusBar.ts   # 状态栏 UI：文本渲染、tooltip 构建、倒计时格式化
+│   ├── statusBar.ts   # 状态栏 UI：文本渲染、tooltip 构建、倒计时格式化
+│   ├── displayMode.ts  # 显示模式工具：剩余/已使用百分比计算
+│   └── welcome.ts     # 欢迎页面：首次安装展示
 ├── out/               # TypeScript 编译输出（CommonJS + source map）
 ├── package.json       # VSCode 扩展清单 + npm scripts + 依赖
 │   main: ./out/extension.js
@@ -72,11 +79,14 @@ vsce package        # 生成 .vsix 文件
 
 - 导出 `activate()` / `deactivate()` 作为 VSCode 扩展生命周期钩子。
 - 维护全局 `state: AppState`，包含 `StatusBarManager`、轮询定时器、Mock 开关。
-- 注册 4 个命令：
+- 注册 7 个命令：
+  - `kimiUsage.showWelcome` — 打开欢迎页面
   - `kimiUsage.refresh` — 手动刷新用量
   - `kimiUsage.setToken` — 输入并保存 API Key 到 VSCode secrets
   - `kimiUsage.openConsole` — 浏览器打开 Kimi Code 控制台
+  - `kimiUsage.openSettings` — 打开扩展设置
   - `kimiUsage.toggleMock` — 切换 Mock 模式并持久化到配置
+  - `kimiUsage.openDebugOutput` — 打开调试输出面板
 - 监听配置变更，自动重新调度轮询并刷新。
 - 启动时自动执行一次刷新并设置定时轮询。
 
@@ -103,6 +113,57 @@ vsce package        # 生成 .vsix 文件
 | `kimiUsage.statusBarIcon` | string | `sparkles` | 状态栏图标（VSCode codicon 名称） |
 | `kimiUsage.apiBaseUrl` | string | `https://api.kimi.com` | API 基础地址 |
 | `kimiUsage.mockMode` | boolean | false | 是否使用模拟数据 |
+| `kimiUsage.debugMode` | boolean | false | 调试模式：输出面板记录 API 请求与响应 |
+| `kimiUsage.displayModeWindow5h` | string | `remaining` | 5h 窗口显示模式：remaining / used |
+| `kimiUsage.displayModeWeekly` | string | `remaining` | 本周额度显示模式：remaining / used |
+| `kimiUsage.displayModeMonthly` | string | `remaining` | 赠送额度显示模式：remaining / used |
+
+## 发布流程
+
+> ⚠️ **重要**：发布必须走自动化流程，不要手动执行 `vsce publish`。
+
+### 自动化发布（推荐）
+
+推送 `v*` 格式的 tag 即可触发 `.github/workflows/publish.yml`：
+
+```bash
+# 1. 更新 package.json 版本号 + CHANGELOG.md
+git add -A
+git commit -m "🏷️ release: bump version to X.Y.Z"
+
+# 2. 打 tag 并推送（必须先 push commit，再 push tag）
+git push
+git tag vX.Y.Z
+git push origin vX.Y.Z
+```
+
+推送后 GitHub Actions 自动执行：
+1. 编译 TypeScript
+2. 从 CHANGELOG.md 提取当前版本变更说明
+3. 打包 .vsix
+4. 创建 GitHub Release（含 CHANGELOG + .vsix 附件）
+5. 发布到 VSCode 扩展商店
+
+### CHANGELOG 格式要求
+
+版本标题必须严格使用 `## [版本号] - 日期` 格式，否则 Release 描述为空：
+
+```markdown
+## [0.9.0] - 2026-07-23
+
+### Added
+- 新功能描述
+
+### Fixed
+- 修复描述
+```
+
+### 手动发布（仅紧急情况）
+
+```bash
+npm run compile
+npx vsce publish
+```
 
 ## 安全与隐私
 

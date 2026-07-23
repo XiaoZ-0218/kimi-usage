@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.8.3] - 2026-07-23
+
+### Changed
+- 全面更换扩展品牌视觉：采用月兔 + 新月设计作为统一 Logo / Icon。
+  - `icon.png`：128×128 透明底月兔图标，用于扩展市场、欢迎页与面板。
+  - `logo.png`：512×512 透明底品牌图（月兔 + Kimi 字标），用于 README。
+  - `icon-source.png`：512×512 高清图标源文件。
+- 所有品牌图统一为透明底、正方形构图、10% 留白，去除大块黑底与多余边距。
+- 欢迎页头部图标适配透明底（72px、`object-fit: contain`），随编辑器主题底色自然融合。
+- README 顶部展示品牌 Logo。
+
+### Added
+- 新增 `scripts/process_icons.py`，可从设计源图一键重新生成统一风格的 icon / logo。
+
+### Test
+
+- 再次测试自动发布release，并自动发布vscode
+
 ## [0.8.2] - 2026-07-23
 
 ### Changed

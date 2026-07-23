@@ -147,5 +147,5 @@ async function toggleMock() {
 }
 
 function openSettings() {
-  vscode.commands.executeCommand('workbench.action.openSettings', '@ext:local.kimi-usage-statusbar');
+  vscode.commands.executeCommand('workbench.action.openSettings', '@ext:XiaoZ-0218.kimi-usage-statusbar');
 }
